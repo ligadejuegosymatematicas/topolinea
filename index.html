@@ -11385,11 +11385,16 @@ const db = getDatabase(app);
 
 const auth = getAuth(app);
 
+let firebaseAuthReadyV170 = false;
+
 try {
-  await signInAnonymously(auth);
-  console.log("Firebase anonymous auth OK");
+  const cred = await signInAnonymously(auth);
+  firebaseAuthReadyV170 = true;
+  console.log("Firebase anonymous auth OK:", cred.user.uid);
 } catch (error) {
+  firebaseAuthReadyV170 = false;
   console.error("Firebase anonymous auth error:", error);
+  alert("No se pudo autenticar con Firebase. El modo remoto puede fallar.");
 }
 
 let firebaseServerOffsetV143 = 0;
