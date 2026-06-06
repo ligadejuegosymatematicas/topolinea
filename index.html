@@ -6269,6 +6269,14 @@ body.surface-mobius-v107 .legend-mobius-v103 .legend-symbol{
   text-transform:none;
 }
 
+.remote-privacy-note-v171{
+  margin-top:6px;
+  color:#94a3b8;
+  font-size:.78rem;
+  line-height:1.25;
+  font-weight:750;
+}
+
 .remote-team-buttons-v136{
   display:grid;
   grid-template-columns:1fr 1fr;
@@ -6729,6 +6737,7 @@ body.surface-mobius-v107 .legend-mobius-v103 .legend-symbol{
       <label class="remote-name-label-v136">
         <span>Tu nombre</span>
         <input id="remotePlayerNameV136" type="text" maxlength="24" placeholder="Jugador/a">
+        <div class="remote-privacy-note-v171">El nombre ingresado podrá guardarse para estadísticas de uso de Topolínea. No se guarda IP, correo ni ubicación.</div>
       </label>
 
       <div class="remote-team-buttons-v136">
@@ -7480,6 +7489,9 @@ function applyMoveLocal(r,c,remoteMeta=null){
   if(win){state.gameOver=true;state.winner=actor.team;state.winningCells=win; stopClock();}
   else if(full()){state.gameOver=true;stopClock();}
   render(); mark3dDirty();
+  if(state.gameOver && window.TopolineaHistoryV171 && typeof window.TopolineaHistoryV171.finishCurrentGame === "function"){
+    window.TopolineaHistoryV171.finishCurrentGame(remoteMeta ? "remote" : "local");
+  }
   return true;
 }
 
@@ -7502,9 +7514,11 @@ function startGame(){
   $("gameScreen").classList.add("active");
   window.scrollTo({top:0,left:0,behavior:"auto"});
   render(); startClock();
+  if(window.TopolineaHistoryV171 && typeof window.TopolineaHistoryV171.startLocalGame === "function") window.TopolineaHistoryV171.startLocalGame();
 }
 function resetGame(){
   readConfig(); empty(); applyBlocks(); render(); startClock(); mark3dDirty();
+  if(window.TopolineaHistoryV171 && typeof window.TopolineaHistoryV171.startLocalGame === "function") window.TopolineaHistoryV171.startLocalGame();
 }
 function startClock(){
   stopClock();
@@ -7525,6 +7539,9 @@ function tickClock(){
   if(state.timeA<=0){state.gameOver=true;state.winner="B";stopClock();}
   if(state.timeB<=0){state.gameOver=true;state.winner="A";stopClock();}
   renderClock(); renderStatus();
+  if(state.gameOver && window.TopolineaHistoryV171 && typeof window.TopolineaHistoryV171.finishCurrentGame === "function"){
+    window.TopolineaHistoryV171.finishCurrentGame("clock");
+  }
 }
 function fmt(t){
   t=Math.max(0,Math.ceil(t));
@@ -11426,6 +11443,261 @@ window.TopolineaRemoteV132 = {
   unsubscribeRoom: null
 };
 
+
+// ===== v171: historial estadístico en Firebase =====
+// Nodo usado: gameHistory/{historyId}
+// Diseñado para funcionar con reglas tipo:
+// "gameHistory": { ".read": false, ".write": "auth != null" }
+const TOPOLINEA_HISTORY_VERSION_V171 = "topolinea-history-v171";
+let localHistoryIdV171 = null;
+let localHistoryFinishedV171 = false;
+let remoteHistoryFinishedV171 = new Set();
+
+function normalizeNameV171(name){
+  return String(name || "")
+    .trim()
+    .toLowerCase()
+    .normalize("NFD")
+    .replace(/[\u0300-\u036f]/g, "")
+    .replace(/\s+/g, " ")
+    .slice(0, 40);
+}
+
+function surfaceLabelV171(surface){
+  const map={
+    plane:"Plano",
+    cylH:"Cilindro horizontal",
+    cylV:"Cilindro vertical",
+    torus:"Toro",
+    mobius:"Cinta de Möbius",
+    klein:"Botella de Klein"
+  };
+  return map[surface] || surface || "Plano";
+}
+
+function historyConfigFromStateV171(){
+  const s = window.state || {};
+  const surface = s.surfaceType || window.selectedSurface?.() || "plane";
+  return {
+    mode: s.mode || $r("playersMode")?.value || "1v1",
+    rows: Number(s.rows || $r("rows")?.value || 0),
+    cols: Number(s.cols || $r("cols")?.value || 0),
+    k: Number(s.k || $r("k")?.value || 0),
+    surface,
+    surfaceLabel: surfaceLabelV171(surface),
+    clockOn: !!s.clockOn,
+    clockMode: $r("clockMode")?.value || (s.clockOn ? "on" : "off"),
+    minutes: Number($r("minutes")?.value || 0),
+    blocks: typeof window.blockConfigSnapshot === "function" ? window.blockConfigSnapshot() : null,
+    firstTeam: "A",
+    turnRule: "A, B, B, A... / por modo"
+  };
+}
+
+function historyConfigFromRemoteConfigV171(config){
+  const surface = config?.surface || "plane";
+  return {
+    mode: config?.mode || "1v1",
+    rows: Number(config?.rows || 0),
+    cols: Number(config?.cols || 0),
+    k: Number(config?.k || 0),
+    surface,
+    surfaceLabel: surfaceLabelV171(surface),
+    clockOn: config?.clockMode !== "off",
+    clockMode: config?.clockMode || "on",
+    minutes: Number(config?.minutes || 0),
+    blocks: config?.blocks || null,
+    firstTeam: "A",
+    turnRule: "A, B, B, A... / por modo"
+  };
+}
+
+function localPlayersV171(){
+  return {
+    A: [{ name:"Equipo A", normalizedName:"equipo a", team:"A", slot:1 }],
+    B: [{ name:"Equipo B", normalizedName:"equipo b", team:"B", slot:1 }]
+  };
+}
+
+function remotePlayersV171(room){
+  const result={ A:[], B:[], unassigned:[] };
+  Object.entries(room?.players || {}).forEach(([id,p])=>{
+    const item={
+      id,
+      name: String(p?.name || "Jugador").slice(0,24),
+      normalizedName: normalizeNameV171(p?.name || "Jugador"),
+      team: p?.team || null,
+      slot: Number(p?.slot || 0) || null,
+      role: p?.role || null,
+      joinedAtClient: p?.joinedAtClient || null
+    };
+    if(item.team === "A") result.A.push(item);
+    else if(item.team === "B") result.B.push(item);
+    else result.unassigned.push(item);
+  });
+  ["A","B","unassigned"].forEach(k=>result[k].sort((x,y)=>(x.slot||99)-(y.slot||99) || x.name.localeCompare(y.name)));
+  return result;
+}
+
+function resultFromStateV171(source){
+  const s = window.state || {};
+  let resultType = "unknown";
+  if(s.winner) resultType = source === "clock" ? "time" : "victory";
+  else if(s.gameOver) resultType = "draw";
+
+  return {
+    winner: s.winner || null,
+    resultType,
+    source: source || null,
+    moves: Array.isArray(s.history) ? s.history.length : Number(s.moveIndex || 0),
+    finalMoveIndex: Number(s.moveIndex || 0),
+    timeA: Number.isFinite(Number(s.timeA)) ? Math.max(0, Number(s.timeA)) : null,
+    timeB: Number.isFinite(Number(s.timeB)) ? Math.max(0, Number(s.timeB)) : null
+  };
+}
+
+async function safeSetHistoryV171(path, payload){
+  try{
+    await set(ref(db, path), payload);
+    console.log("Topolínea history set:", path);
+    return true;
+  }catch(err){
+    console.warn("No se pudo guardar historial en", path, err);
+    return false;
+  }
+}
+
+async function safeUpdateHistoryV171(path, payload){
+  try{
+    await update(ref(db, path), payload);
+    console.log("Topolínea history update:", path);
+    return true;
+  }catch(err){
+    console.warn("No se pudo actualizar historial en", path, err);
+    return false;
+  }
+}
+
+async function startLocalHistoryV171(){
+  const s = window.state || {};
+  if(s.matchType === "remote") return;
+  if(!firebaseAuthReadyV170) return;
+
+  localHistoryIdV171 = "local_" + Date.now() + "_" + Math.random().toString(36).slice(2,8);
+  localHistoryFinishedV171 = false;
+
+  await safeSetHistoryV171("gameHistory/" + localHistoryIdV171, {
+    schemaVersion: TOPOLINEA_HISTORY_VERSION_V171,
+    type: "local",
+    visibility: "privateStats",
+    createdAt: serverTimestamp(),
+    startedAt: serverTimestamp(),
+    startedAtClient: Date.now(),
+    appVersion: TOPOLINEA_HISTORY_VERSION_V171,
+    config: historyConfigFromStateV171(),
+    players: localPlayersV171(),
+    result: null,
+    privacy: {
+      storesNames: false,
+      storesIp: false,
+      storesEmail: false,
+      storesLocation: false
+    }
+  });
+}
+
+async function startRemoteHistoryV171(code, gameId, config, room){
+  if(!code || !gameId || !firebaseAuthReadyV170) return;
+  if(window.TopolineaRemoteV132?.role !== "host") return;
+
+  const historyId = `remote_${code}_${gameId}`;
+  remoteHistoryFinishedV171.delete(historyId);
+
+  await safeSetHistoryV171("gameHistory/" + historyId, {
+    schemaVersion: TOPOLINEA_HISTORY_VERSION_V171,
+    type: "remote",
+    roomCode: code,
+    gameId: Number(gameId),
+    visibility: "privateStats",
+    createdAt: serverTimestamp(),
+    startedAt: serverTimestamp(),
+    startedAtClient: Date.now(),
+    appVersion: TOPOLINEA_HISTORY_VERSION_V171,
+    config: historyConfigFromRemoteConfigV171(config),
+    players: remotePlayersV171(room),
+    result: null,
+    privacy: {
+      storesNames: true,
+      storesNormalizedNames: true,
+      storesIp: false,
+      storesEmail: false,
+      storesLocation: false
+    }
+  });
+}
+
+async function finishCurrentHistoryV171(source){
+  const s = window.state || {};
+  if(!s.gameOver || !firebaseAuthReadyV170) return;
+
+  if(s.matchType === "remote"){
+    const code = window.TopolineaRemoteV132?.currentRoomCode;
+    const gameId = window.TopolineaRemoteV132?.currentGameId;
+    if(!code || !gameId) return;
+    if(window.TopolineaRemoteV132?.role !== "host") return;
+
+    const historyId = `remote_${code}_${gameId}`;
+    if(remoteHistoryFinishedV171.has(historyId)) return;
+    remoteHistoryFinishedV171.add(historyId);
+
+    const room = window.TopolineaRemoteV132?.lastRoomSnapshot || {};
+    await safeUpdateHistoryV171("gameHistory/" + historyId, {
+      endedAt: serverTimestamp(),
+      endedAtClient: Date.now(),
+      playersFinal: remotePlayersV171(room),
+      result: resultFromStateV171(source)
+    });
+    return;
+  }
+
+  if(!localHistoryIdV171 || localHistoryFinishedV171) return;
+  localHistoryFinishedV171 = true;
+  await safeUpdateHistoryV171("gameHistory/" + localHistoryIdV171, {
+    endedAt: serverTimestamp(),
+    endedAtClient: Date.now(),
+    result: resultFromStateV171(source)
+  });
+}
+
+async function finishRemoteByHostEndV171(code, gameId, room){
+  if(!code || !gameId || !firebaseAuthReadyV170) return;
+  if(window.TopolineaRemoteV132?.role !== "host") return;
+  const historyId = `remote_${code}_${gameId}`;
+  if(remoteHistoryFinishedV171.has(historyId)) return;
+  remoteHistoryFinishedV171.add(historyId);
+
+  const baseResult = resultFromStateV171("host_ended");
+  if(!window.state?.gameOver){
+    baseResult.resultType = "host_ended";
+    baseResult.winner = null;
+  }
+
+  await safeUpdateHistoryV171("gameHistory/" + historyId, {
+    endedAt: serverTimestamp(),
+    endedAtClient: Date.now(),
+    playersFinal: remotePlayersV171(room),
+    result: baseResult
+  });
+}
+
+window.TopolineaHistoryV171 = {
+  startLocalGame: startLocalHistoryV171,
+  startRemoteGame: startRemoteHistoryV171,
+  finishCurrentGame: finishCurrentHistoryV171,
+  finishRemoteByHostEnd: finishRemoteByHostEndV171,
+  normalizeName: normalizeNameV171
+};
+
 const $r = id => document.getElementById(id);
 
 function getPlayerId(){
@@ -11893,6 +12165,7 @@ async function joinTeam(team){
     await update(ref(db, "rooms/" + code + "/players/" + localPlayerIdV136), {
       role: window.TopolineaRemoteV132.role || current.role || "guest",
       name: playerName,
+      normalizedName: normalizeNameV171(playerName),
       team,
       slot,
       updatedAt: serverTimestamp()
@@ -12132,9 +12405,11 @@ async function createRoom(){
         [localPlayerIdV136]: {
           role: "host",
           name: playerName,
+          normalizedName: normalizeNameV171(playerName),
           team: null,
           slot: null,
-          joinedAt: serverTimestamp()
+          joinedAt: serverTimestamp(),
+          joinedAtClient: Date.now()
         }
       },
       history: [],
@@ -12187,9 +12462,11 @@ async function joinRoom(){
     await update(ref(db, "rooms/" + code + "/players/" + localPlayerIdV136), {
       role: "guest",
       name: playerName,
+      normalizedName: normalizeNameV171(playerName),
       team: null,
       slot: null,
-      joinedAt: serverTimestamp()
+      joinedAt: serverTimestamp(),
+      joinedAtClient: Date.now()
     });
 
     await update(roomRef, {
@@ -12429,6 +12706,10 @@ async function startRemoteRoom(){
     window.TopolineaRemoteV132.startedApplied = false;
     window.TopolineaRemoteV132.lastMoveApplied = 0;
 
+    if(window.TopolineaHistoryV171 && typeof window.TopolineaHistoryV171.startRemoteGame === "function"){
+      await window.TopolineaHistoryV171.startRemoteGame(code, nextGameId, config, room);
+    }
+
     setStatus("Partida iniciada. Cargando tablero...", "ok");
   }catch(err){
     console.error(err);
@@ -12529,6 +12810,10 @@ async function resetRemoteGameV144(){
     window.TopolineaRemoteV132.currentGameId=null;
     window.TopolineaRemoteV132.lastMoveApplied=0;
 
+    if(window.TopolineaHistoryV171 && typeof window.TopolineaHistoryV171.startRemoteGame === "function"){
+      await window.TopolineaHistoryV171.startRemoteGame(code, nextGameId, config, room);
+    }
+
     setStatus("Partida remota reiniciada para todos.", "ok");
   }catch(err){
     console.error(err);
@@ -12556,6 +12841,10 @@ async function endRemoteGame(){
     if(!snap.exists()){
       setStatus("La sala ya no existe.", "error");
       return;
+    }
+
+    if(window.TopolineaHistoryV171 && typeof window.TopolineaHistoryV171.finishRemoteByHostEnd === "function"){
+      await window.TopolineaHistoryV171.finishRemoteByHostEnd(code, snap.val()?.gameId, snap.val());
     }
 
     await update(roomRef,{
