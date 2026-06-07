@@ -11448,7 +11448,8 @@ window.TopolineaRemoteV132 = {
 // Nodo usado: gameHistory/{historyId}
 // Diseñado para funcionar con reglas tipo:
 // "gameHistory": { ".read": false, ".write": "auth != null" }
-const TOPOLINEA_HISTORY_VERSION_V171 = "topolinea-history-v174";
+const TOPOLINEA_HISTORY_VERSION_V171 = "topolinea-history-v175";
+console.log("Topolínea historial activo:", TOPOLINEA_HISTORY_VERSION_V171, "(guarda en Firebase solo al finalizar)");
 const TOPOLINEA_HISTORY_TIMEZONE_V172 = "America/Santiago";
 let localHistoryIdV171 = null;
 let localHistoryFinishedV171 = false;
@@ -11768,6 +11769,13 @@ function finalStatsFieldsV173(source){
 
 async function safeSetHistoryV171(path, payload){
   try{
+    // v175: seguro contra escritura prematura.
+    // Los registros de gameHistory deben crearse solo al finalizar la partida,
+    // porque las reglas Firebase recomendadas usan !data.exists().
+    if(String(path || "").startsWith("gameHistory/") && !(payload?.endedAtClient && payload?.result)){
+      console.warn("Topolínea history: escritura ignorada porque la partida aún no terminó", path, payload);
+      return false;
+    }
     await set(ref(db, path), payload);
     console.log("Topolínea history set:", path);
     return true;
@@ -11880,6 +11888,7 @@ async function finishCurrentHistoryV171(source){
       visibility: "privateStats",
       createdAt: serverTimestamp(),
       savedAt: serverTimestamp(),
+      savedWhen: "game_end",
       endedAt: serverTimestamp(),
       ...endTimeFieldsV172(startClient, endClient),
       playersFinal: remotePlayersV171(room),
