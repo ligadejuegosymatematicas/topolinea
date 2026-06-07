@@ -2,6 +2,9 @@
 <html lang="es">
 <head>
   <meta charset="UTF-8" />
+  <meta http-equiv="Cache-Control" content="no-store, no-cache, must-revalidate, max-age=0" />
+  <meta http-equiv="Pragma" content="no-cache" />
+  <meta http-equiv="Expires" content="0" />
   <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
   <title>Topolínea</title>
   <meta name="description" content="Topolínea: conecta fichas sobre tableros con identificaciones topológicas." />
@@ -6652,9 +6655,413 @@ body.surface-mobius-v107 .legend-mobius-v103 .legend-symbol{
 }
 </style>
 
+
+
+<style id="v177-main-menu-style">
+/* ===== v177: Menú principal + separación de flujos ===== */
+#mainMenuScreen,
+#playModeScreen,
+#surfaceViewerIntroScreen{
+  background:
+    radial-gradient(circle at top left, rgba(34,211,238,.10), transparent 32%),
+    radial-gradient(circle at bottom right, rgba(236,72,153,.10), transparent 34%),
+    linear-gradient(180deg, rgba(15,23,42,.96), rgba(2,6,23,.98));
+}
+
+.v177-shell{
+  width:min(1040px,100%);
+  min-height:calc(100vh - 44px);
+  margin:0 auto;
+  display:grid;
+  place-items:center;
+}
+
+.v177-card{
+  width:min(760px,100%);
+  padding:24px;
+  border-radius:30px;
+  background:
+    radial-gradient(circle at top left, rgba(34,211,238,.12), transparent 42%),
+    radial-gradient(circle at bottom right, rgba(236,72,153,.12), transparent 42%),
+    rgba(2,6,23,.78);
+  border:1px solid rgba(148,163,184,.22);
+  box-shadow:0 24px 70px rgba(0,0,0,.38), inset 0 1px 0 rgba(255,255,255,.04);
+  text-align:center;
+}
+
+.v177-logo{
+  display:block;
+  width:min(390px,86%);
+  margin:0 auto 10px;
+  filter:
+    drop-shadow(0 0 20px rgba(34,211,238,.18))
+    drop-shadow(0 0 20px rgba(236,72,153,.16));
+  mix-blend-mode:screen;
+}
+
+.v177-title{
+  margin:0 0 8px;
+  font-family:"Orbitron","Rajdhani",system-ui,sans-serif;
+  font-size:clamp(1.65rem,5vw,2.8rem);
+  letter-spacing:.04em;
+  font-weight:900;
+}
+
+.v177-lead{
+  margin:0 auto 22px;
+  max-width:620px;
+  color:#cbd5e1;
+  font-size:1.05rem;
+  line-height:1.42;
+}
+
+.v177-actions{
+  display:grid;
+  grid-template-columns:1fr 1fr;
+  gap:14px;
+  margin-top:18px;
+}
+
+.v177-big-btn{
+  min-height:88px;
+  border-radius:24px;
+  padding:16px;
+  background:
+    linear-gradient(135deg, rgba(34,211,238,.16), rgba(236,72,153,.12)),
+    rgba(15,23,42,.86);
+  color:#f8fafc;
+  border:1px solid rgba(148,163,184,.28);
+  display:grid;
+  gap:4px;
+  text-align:left;
+  box-shadow:0 12px 28px rgba(0,0,0,.22);
+}
+
+.v177-big-btn strong{
+  font-size:1.18rem;
+  font-weight:1000;
+}
+
+.v177-big-btn span{
+  color:#cbd5e1;
+  font-size:.92rem;
+  font-weight:800;
+}
+
+.v177-big-btn:hover{
+  transform:translateY(-1px);
+  border-color:rgba(34,211,238,.52);
+  box-shadow:0 0 26px rgba(34,211,238,.10), 0 12px 28px rgba(0,0,0,.22);
+}
+
+.v177-secondary-row{
+  margin-top:16px;
+  display:flex;
+  justify-content:center;
+  gap:10px;
+  flex-wrap:wrap;
+}
+
+.v177-back{
+  background:#e5e7eb !important;
+  color:#111827 !important;
+}
+
+.v177-disabled{
+  opacity:.58;
+  cursor:not-allowed;
+}
+
+/* La pantalla de configuración deja de ser portada: solo configuración limpia. */
+#startScreen.game-config-only{
+  padding:22px;
+}
+
+#startScreen.game-config-only .home{
+  display:block !important;
+  max-width:900px !important;
+  min-height:auto !important;
+}
+
+#startScreen.game-config-only .hero-logo{
+  display:none !important;
+}
+
+#startScreen.game-config-only .config-card{
+  width:min(860px,100%);
+  margin:0 auto;
+}
+
+#startScreen.game-config-only .config-head::before{
+  content:"Configuración de juego";
+  display:inline-flex;
+  margin-bottom:10px;
+  padding:5px 10px;
+  border-radius:999px;
+  color:#bae6fd;
+  background:rgba(34,211,238,.10);
+  border:1px solid rgba(34,211,238,.20);
+  font-weight:950;
+  font-size:.8rem;
+}
+
+@media(max-width:760px){
+  .v177-card{padding:20px;border-radius:26px;}
+  .v177-actions{grid-template-columns:1fr;}
+  .v177-big-btn{min-height:78px;}
+}
+</style>
+
+
+<style id="v178-navigation-fix-style">
+/* ===== v178: navegación quirúrgica y separación Local/Remoto ===== */
+#startScreen.game-config-only #playFlowCard{
+  display:none !important;
+}
+
+.v178-config-nav{
+  width:min(860px,100%);
+  margin:0 auto 14px;
+  display:grid;
+  grid-template-columns:auto 1fr auto;
+  gap:10px;
+  align-items:center;
+  padding:10px 12px;
+  border-radius:20px;
+  background:rgba(2,6,23,.66);
+  border:1px solid rgba(148,163,184,.20);
+  box-shadow:0 10px 26px rgba(0,0,0,.20), inset 0 1px 0 rgba(255,255,255,.035);
+}
+.v178-nav-title{
+  justify-self:center;
+  color:#f8fafc;
+  font-weight:1000;
+  letter-spacing:.02em;
+  text-align:center;
+}
+.v178-nav-sub{
+  display:block;
+  margin-top:2px;
+  color:#94a3b8;
+  font-size:.78rem;
+  font-weight:800;
+}
+.v178-nav-btn{
+  min-height:38px;
+  padding:8px 13px;
+  border-radius:14px;
+  font-weight:950;
+  background:#e5e7eb !important;
+  color:#111827 !important;
+}
+
+/* Remoto antes de crear/unirse: solo sala. Invitado: solo información de sala. */
+body.v178-remote-entry #localConfigWrap,
+body.v178-remote-entry .v83-options-group,
+body.v178-remote-entry .v83-preview-group,
+body.v178-remote-entry .actions{
+  display:none !important;
+}
+
+body.v178-remote-entry #remoteComingCard{
+  display:block !important;
+}
+
+body.v178-remote-entry #startScreen .config-head p::after{
+  content:" Primero crea una sala o únete con un código. La configuración aparecerá solo al host.";
+}
+
+.topbar-v43{
+  grid-template-columns:auto 1fr auto auto auto !important;
+}
+
+.v178-game-mode-btn{
+  background:linear-gradient(90deg,#dbeafe,#bfdbfe) !important;
+  color:#0f172a !important;
+}
+
+@media(max-width:760px){
+  .v178-config-nav{
+    grid-template-columns:1fr 1fr;
+  }
+  .v178-nav-title{
+    grid-column:1 / -1;
+    grid-row:2;
+  }
+  .v178-nav-btn{
+    width:100%;
+  }
+}
+</style>
+
+<style id="v182-true-surgical-nav-css">
+/* v182: cirugía mínima real: el selector Local/Remoto vive solo en la pantalla Jugar. */
+#startScreen #playFlowCard{
+  display:none !important;
+}
+
+/* En configuración queda solo Inicio, no Elegir modo. */
+#configModeBtnV179{
+  display:none !important;
+}
+#configNavV179{
+  grid-template-columns:auto 1fr !important;
+}
+
+/* En partida evitamos el botón Modo: salir de una partida debe ser una acción explícita. */
+#gameModeBtnV179{
+  display:none !important;
+}
+.topbar-v43{
+  grid-template-columns:auto 1fr auto auto !important;
+}
+
+/* Estado remoto inicial: antes de crear/unirse, solo sala. */
+body.v182-remote-entry #localConfigWrap,
+body.v182-remote-entry .v83-options-group,
+body.v182-remote-entry .v83-preview-group,
+body.v182-remote-entry .actions{
+  display:none !important;
+}
+body.v182-remote-entry #remoteComingCard{
+  display:block !important;
+}
+
+/* Estado local: no se muestra la tarjeta remota. */
+body.v182-local-entry #remoteComingCard{
+  display:none !important;
+}
+
+.v182-host-config-visible #localConfigWrap,
+.v182-host-config-visible .v83-options-group,
+.v182-host-config-visible .v83-preview-group,
+.v182-host-config-visible .actions{
+  display:block;
+}
+</style>
+
+
+<style id="v183-surgical-remote-nav-style">
+/* v183: cirugía mínima de navegación y visibilidad remota. */
+#configModeBtnV179,
+#gameModeBtnV179{
+  display:none !important;
+}
+
+/* En configuración solo debe quedar el botón Inicio. */
+#configNavV179{
+  grid-template-columns:minmax(110px,auto) 1fr !important;
+}
+#configNavV179 .v179-nav-title{
+  justify-self:center;
+}
+
+/* Remoto recién elegido: solo sala/lobby remoto, sin configuración. */
+body.v183-remote-entry #localConfigWrap,
+body.v183-remote-entry .v83-options-group,
+body.v183-remote-entry .v83-preview-group,
+body.v183-remote-entry .actions{
+  display:none !important;
+}
+
+body.v183-remote-entry #remoteComingCard{
+  display:block !important;
+}
+
+/* Host remoto con sala creada: ve configuración y lobby; no usa botón local de iniciar. */
+body.v183-remote-host #localConfigWrap,
+body.v183-remote-host .v83-options-group,
+body.v183-remote-host .v83-preview-group{
+  display:block !important;
+}
+body.v183-remote-host #remoteComingCard{
+  display:block !important;
+}
+body.v183-remote-host .actions{
+  display:none !important;
+}
+
+/* Local: flujo normal de configuración. */
+body.v183-local-entry #localConfigWrap,
+body.v183-local-entry .v83-options-group,
+body.v183-local-entry .v83-preview-group,
+body.v183-local-entry .actions{
+  display:block !important;
+}
+body.v183-local-entry #remoteComingCard{
+  display:none !important;
+}
+</style>
+
 </head>
-<body>
-  <section id="startScreen" class="screen active">
+<body data-v188="1">
+  <div id="v188VisibleMarker" style="position:fixed;right:8px;bottom:8px;z-index:99999;background:#111827;color:#facc15;border:1px solid #facc15;border-radius:999px;padding:4px 8px;font:700 11px system-ui;opacity:.75;pointer-events:none">v188</div>
+  <div id="buildVersionMarkerV190" style="display:none">topolinea-history-v190-remote-create-expose</div>
+  <section id="mainMenuScreen" class="screen active">
+    <div class="v177-shell">
+      <div class="v177-card">
+        <img class="v177-logo" id="mainMenuLogoV177" alt="Topolínea">
+        <h1 class="v177-title">Topolínea</h1>
+        <p class="v177-lead">Conecta, bloquea y explora cómo cambia una misma idea sobre distintas superficies.</p>
+        <div class="v177-actions">
+          <button type="button" id="mainPlayBtnV177" class="v177-big-btn">
+            <strong>Jugar</strong>
+            <span>Partidas locales o remotas.</span>
+          </button>
+          <button type="button" id="mainSurfacesBtnV177" class="v177-big-btn">
+            <strong>Visualizar superficies</strong>
+            <span>Herramienta educativa para posiciones y superficies 3D.</span>
+          </button>
+        </div>
+      </div>
+    </div>
+  </section>
+
+  <section id="playModeScreen" class="screen">
+    <div class="v177-shell">
+      <div class="v177-card">
+        <h2 class="v177-title">Jugar</h2>
+        <p class="v177-lead">Elige el flujo de partida. Local es siempre 1 vs 1; remoto infiere el formato según quienes entren a cada equipo.</p>
+        <div class="v177-actions">
+          <button type="button" id="playLocalBtnV177" class="v177-big-btn">
+            <strong>Local</strong>
+            <span>1 vs 1 en este dispositivo.</span>
+          </button>
+          <button type="button" id="playRemoteBtnV177" class="v177-big-btn">
+            <strong>Remoto</strong>
+            <span>Crear sala o unirse con código.</span>
+          </button>
+        </div>
+        <div class="v177-actions" style="grid-template-columns:1fr;margin-top:12px;">
+          <button type="button" class="v177-big-btn v177-disabled" disabled>
+            <strong>Entrenamiento</strong>
+            <span>Modo contra bot para una versión futura.</span>
+          </button>
+        </div>
+        <div class="v177-secondary-row">
+          <button type="button" id="playBackBtnV177" class="secondary v177-back">Inicio</button>
+        </div>
+      </div>
+    </div>
+  </section>
+
+  <section id="surfaceViewerIntroScreen" class="screen">
+    <div class="v177-shell">
+      <div class="v177-card">
+        <h2 class="v177-title">Visualizar superficies</h2>
+        <p class="v177-lead">Esta sección queda separada del modo partida. Próximo paso: editor libre de posiciones, validación y visualización 3D por superficie.</p>
+        <div class="v177-secondary-row">
+          <button type="button" id="surfacesBackBtnV177" class="secondary v177-back">Volver al menú</button>
+        </div>
+      </div>
+    </div>
+  </section>
+
+  <section id="startScreen" class="screen game-config-only">
+    <div class="v179-config-nav v185-config-nav" id="configNavV179">
+      <button type="button" id="configHomeBtnV179" class="v179-nav-btn">Inicio</button>
+      <div class="v179-nav-title">Configuración de partida <span id="configModeLabelV179" class="v179-nav-sub">Modo local</span></div>
+    </div>
     <div class="home">
       <div class="hero hero-logo">
         <div class="topo-bg"></div>
@@ -7005,7 +7412,8 @@ body.surface-mobius-v107 .legend-mobius-v103 .legend-symbol{
 
   <section id="gameScreen" class="screen">
     <div class="topbar topbar-v43">
-      <button id="backBtn" class="secondary topbar-btn">Inicio</button>
+      <button id="backBtn" class="secondary topbar-btn">Volver</button>
+      <button id="gameModeBtnV179" class="secondary topbar-btn v179-game-mode-btn" type="button">Modo</button>
       <div class="title-small game-title-v43">
         Topolínea — Conecta <strong id="connectBadge">5</strong> sobre <span id="surfaceBadge" class="badge">Plano</span>
       </div>
@@ -10408,34 +10816,57 @@ function drawFlat(W,H){
 
 <script id="v74-local-remoto-js">
 (function(){
+  function $(id){ return document.getElementById(id); }
+
+  function hasVisibleRoom(){
+    const info = $("remoteRoomInfoV132");
+    return !!(info && !info.hasAttribute("hidden"));
+  }
+
+  function isRemoteHost(){
+    return !!(window.TopolineaRemoteV132 && window.TopolineaRemoteV132.role === "host");
+  }
+
+  function setConfigVisibility(mode){
+    const isRemote = mode === "remote";
+    const showConfig = !isRemote || (hasVisibleRoom() && isRemoteHost());
+    $("localConfigWrap")?.classList.toggle("remote-hidden", !showConfig);
+    document.querySelector(".actions")?.classList.toggle("remote-hidden", isRemote && !showConfig);
+  }
+
   function setFlow(mode){
-    const isRemote=mode==="remote";
-    document.getElementById("chooseLocal")?.classList.toggle("active",!isRemote);
-    document.getElementById("chooseRemote")?.classList.toggle("active",isRemote);
+    const isRemote = mode === "remote";
+    $("chooseLocal")?.classList.toggle("active", !isRemote);
+    $("chooseRemote")?.classList.toggle("active", isRemote);
 
-    // v132: en modo remoto se mantiene visible la configuración,
-    // porque el host debe poder configurar tablero/superficie antes de crear sala.
-    document.getElementById("localConfigWrap")?.classList.remove("remote-hidden");
-
-    // Se oculta solo el botón local "Iniciar partida" para evitar confusión.
-    document.querySelector(".actions")?.classList.toggle("remote-hidden",isRemote);
-
-    const card=document.getElementById("remoteComingCard");
+    const card = $("remoteComingCard");
     if(card){
-      card.classList.toggle("active",isRemote);
-      card.setAttribute("aria-hidden",isRemote?"false":"true");
+      card.classList.toggle("active", isRemote);
+      card.setAttribute("aria-hidden", isRemote ? "false" : "true");
     }
 
-    const match=document.getElementById("matchType");
-    if(match) match.value=isRemote?"remote":"local";
+    const match = $("matchType");
+    if(match) match.value = isRemote ? "remote" : "local";
 
     window.__topolineaMatchType = mode;
+    setConfigVisibility(mode);
   }
 
   window.setTopolineaFlowV132 = setFlow;
+  window.updateTopolineaRemoteConfigVisibilityV184 = function(){
+    setConfigVisibility(window.__topolineaMatchType || "local");
+  };
 
-  document.getElementById("chooseLocal")?.addEventListener("click",()=>setFlow("local"));
-  document.getElementById("chooseRemote")?.addEventListener("click",()=>setFlow("remote"));
+  $("chooseLocal")?.addEventListener("click", () => setFlow("local"));
+  $("chooseRemote")?.addEventListener("click", () => setFlow("remote"));
+
+  // Si cambia el estado de la sala remota, recalcular visibilidad.
+  const info = $("remoteRoomInfoV132");
+  if(info){
+    new MutationObserver(() => window.updateTopolineaRemoteConfigVisibilityV184())
+      .observe(info, { attributes:true, attributeFilter:["hidden"] });
+  }
+
   setFlow("local");
 })();
 </script>
@@ -11448,8 +11879,10 @@ window.TopolineaRemoteV132 = {
 // Nodo usado: gameHistory/{historyId}
 // Diseñado para funcionar con reglas tipo:
 // "gameHistory": { ".read": false, ".write": "auth != null" }
-const TOPOLINEA_HISTORY_VERSION_V171 = "topolinea-history-v175";
+const TOPOLINEA_HISTORY_VERSION_V171 = "topolinea-history-v185-surgical-video-fix";
 console.log("Topolínea historial activo:", TOPOLINEA_HISTORY_VERSION_V171, "(guarda en Firebase solo al finalizar)");
+window.TOPOLINEA_BUILD_VERSION = TOPOLINEA_HISTORY_VERSION_V171;
+console.log("TOPOLINEA_BUILD_VERSION", window.TOPOLINEA_BUILD_VERSION);
 const TOPOLINEA_HISTORY_TIMEZONE_V172 = "America/Santiago";
 let localHistoryIdV171 = null;
 let localHistoryFinishedV171 = false;
@@ -12990,6 +13423,17 @@ async function startRemoteRoom(){
   }
 }
 
+
+// v189: exponer funciones remotas para parches de navegación posteriores.
+window.TopolineaRemoteV132.createRoom = createRoom;
+window.TopolineaRemoteV132.joinRoom = joinRoom;
+window.TopolineaRemoteV132.startRemoteRoom = startRemoteRoom;
+
+// v190: exponer funciones remotas locales del módulo para parches externos seguros.
+window.TopolineaRemoteV132.createRoom = createRoom;
+window.TopolineaRemoteV132.joinRoom = joinRoom;
+window.TopolineaRemoteV132.startRemoteRoom = startRemoteRoom;
+
 $r("createRoomBtnV132")?.addEventListener("click", createRoom);
 $r("joinRoomBtnV132")?.addEventListener("click", joinRoom);
 $r("copyRoomLinkBtnV132")?.addEventListener("click", copyLink);
@@ -13215,3 +13659,222 @@ if(lastRoom){
   setStatus("Firebase conectado. Puedes crear o unirte a una sala.");
 }
 </script>
+
+
+<script id="v177-main-menu-js">
+(function(){
+  function $(id){ return document.getElementById(id); }
+
+  function showScreen(id){
+    document.querySelectorAll('.screen').forEach(screen => screen.classList.remove('active'));
+    $(id)?.classList.add('active');
+    window.scrollTo({top:0,left:0,behavior:'auto'});
+  }
+
+  window.TopolineaNavigationV177 = { showScreen };
+
+  // Reutiliza el logo embebido ya existente, sin duplicar el base64 en el HTML.
+  const existingLogo = document.querySelector('#startScreen .main-logo');
+  const menuLogo = $('mainMenuLogoV177');
+  if(existingLogo && menuLogo && existingLogo.src){
+    menuLogo.src = existingLogo.src;
+  }
+
+  $('mainPlayBtnV177')?.addEventListener('click', () => showScreen('playModeScreen'));
+  $('mainSurfacesBtnV177')?.addEventListener('click', () => showScreen('surfaceViewerIntroScreen'));
+  $('playBackBtnV177')?.addEventListener('click', () => showScreen('mainMenuScreen'));
+  $('surfacesBackBtnV177')?.addEventListener('click', () => showScreen('mainMenuScreen'));
+
+  $('playLocalBtnV177')?.addEventListener('click', () => {
+    window.setTopolineaFlowV132?.('local');
+    showScreen('startScreen');
+  });
+
+  $('playRemoteBtnV177')?.addEventListener('click', () => {
+    window.setTopolineaFlowV132?.('remote');
+    showScreen('startScreen');
+  });
+
+  // Sobrescribe con seguridad el botón Inicio de la partida: ahora vuelve al Menú Principal.
+  const backBtn = $('backBtn');
+  if(backBtn){
+    backBtn.onclick = () => {
+      if(typeof stopClock === 'function') stopClock();
+      $('gameScreen')?.classList.remove('active');
+      showScreen('mainMenuScreen');
+    };
+  }
+
+  // Si se abre un link remoto (?room=...), mostrar directamente el flujo remoto.
+  try{
+    const params = new URLSearchParams(window.location.search);
+    if(params.get('room')){
+      window.setTopolineaFlowV132?.('remote');
+      showScreen('startScreen');
+    }
+  }catch(e){}
+})();
+</script>
+
+
+<style id="v188-remote-nav-fix-style">
+  #v190DiagPanel{position:fixed;right:8px;bottom:34px;z-index:100000;max-width:min(300px,92vw);padding:8px 10px;border-radius:12px;background:rgba(2,6,23,.92);color:#e5e7eb;border:1px solid rgba(34,211,238,.55);font:700 11px/1.35 system-ui,-apple-system,Segoe UI,sans-serif;box-shadow:0 8px 24px rgba(0,0,0,.35);pointer-events:none;white-space:pre-line;}
+  body.v188-remote-prehost #localConfigWrap,
+  body.v188-remote-prehost .v83-options-group,
+  body.v188-remote-prehost .v83-preview-group,
+  body.v188-remote-prehost .actions{display:none !important;}
+  body.v188-remote-prehost #remoteComingCard{display:block !important;}
+  body.v188-local-flow #remoteComingCard{display:none !important;}
+  #gameModeBtnV179{display:none !important;}
+</style>
+<script id="v188-remote-nav-fix-js">
+(function(){
+  'use strict';
+  const $=(id)=>document.getElementById(id);
+  const screens=['mainMenuScreen','playModeScreen','surfaceViewerIntroScreen','startScreen','gameScreen'];
+  function activeScreen(){const el=screens.map($).find(x=>x&&x.classList.contains('active'));return el?el.id:'(ninguna)';}
+  function currentMode(){return window.__topolineaMatchType || $('matchType')?.value || 'local';}
+  function remoteObj(){return window.TopolineaRemoteV132 || {};}
+  function remoteInfoVisible(){const info=$('remoteRoomInfoV132');return !!(info && !info.hasAttribute('hidden'));}
+  function isRemoteHostReady(){const r=remoteObj();return currentMode()==='remote' && r.role==='host' && (!!r.currentRoomCode || remoteInfoVisible());}
+  function showScreen(id){screens.forEach(name=>$(name)?.classList.toggle('active',name===id));window.scrollTo({top:0,left:0,behavior:'auto'});applyRemoteVisibility('showScreen('+id+')');}
+  function force(selector,hidden){document.querySelectorAll(selector).forEach(el=>{el.style.display=hidden?'none':'';});}
+  function applyRemoteVisibility(reason){
+    const isRemote=currentMode()==='remote';
+    const hostReady=isRemoteHostReady();
+    const prehost=isRemote && !hostReady;
+    document.body.classList.toggle('v188-remote-prehost',prehost);
+    document.body.classList.toggle('v188-local-flow',!isRemote);
+    force('#localConfigWrap, .v83-options-group, .v83-preview-group, .actions',prehost);
+    const card=$('remoteComingCard');
+    if(card){
+      if(isRemote){card.classList.add('active');card.style.display='block';card.setAttribute('aria-hidden','false');}
+      else{card.classList.remove('active');card.style.display='none';card.setAttribute('aria-hidden','true');}
+    }
+    const label=$('configModeLabelV179');
+    if(label) label.textContent=isRemote?(hostReady?'Modo remoto · Host':'Modo remoto · Sala'):'Modo local';
+    updateDiag(reason||'apply');
+  }
+  function setFlow(modeValue){
+    if($('matchType')) $('matchType').value=modeValue;
+    window.__topolineaMatchType=modeValue;
+    try{window.setTopolineaFlowV132?.(modeValue);}catch(e){console.warn('[v188] setTopolineaFlowV132 falló',e);}
+    applyRemoteVisibility('setFlow('+modeValue+')');
+  }
+  function goMain(){try{if(typeof stopClock==='function')stopClock();}catch(e){} showScreen('mainMenuScreen');}
+  function goConfig(){try{if(typeof stopClock==='function')stopClock();}catch(e){} showScreen('startScreen');}
+  function bindCapture(id,handler){const el=$(id); if(!el)return; el.addEventListener('click',ev=>{ev.preventDefault();ev.stopImmediatePropagation();handler(ev);},true);}
+  function wire(){
+    bindCapture('mainPlayBtnV177',()=>showScreen('playModeScreen'));
+    bindCapture('mainSurfacesBtnV177',()=>showScreen('surfaceViewerIntroScreen'));
+    bindCapture('playBackBtnV177',()=>showScreen('mainMenuScreen'));
+    bindCapture('surfacesBackBtnV177',()=>showScreen('mainMenuScreen'));
+    bindCapture('playLocalBtnV177',()=>{setFlow('local');showScreen('startScreen');});
+    bindCapture('playRemoteBtnV177',()=>{setFlow('remote');showScreen('startScreen');});
+    bindCapture('configHomeBtnV179',()=>goMain());
+    const back=$('backBtn');
+    if(back){back.textContent='Volver';back.onclick=null;back.addEventListener('click',ev=>{ev.preventDefault();ev.stopImmediatePropagation();goConfig();},true);}
+    const modeBtn=$('gameModeBtnV179'); if(modeBtn) modeBtn.style.display='none';
+    ['createRoomBtnV132','joinRoomBtnV132','startRemoteRoomBtnV133','joinTeamABtnV136','joinTeamBBtnV136','reconnectRoomBtnV141'].forEach(id=>{
+      $(id)?.addEventListener('click',()=>{setTimeout(()=>applyRemoteVisibility('after '+id+' 250ms'),250);setTimeout(()=>applyRemoteVisibility('after '+id+' 1000ms'),1000);},true);
+    });
+  }
+  function ensureDiag(){let p=$('v190DiagPanel');if(!p){p=document.createElement('div');p.id='v190DiagPanel';document.body.appendChild(p);}return p;}
+  function updateDiag(reason){const r=remoteObj();const p=ensureDiag();p.textContent='v190 remote/create expose\n'+'evento: '+(reason||'-')+'\n'+'pantalla: '+activeScreen()+'\n'+'modo: '+currentMode()+'\n'+'rol: '+(r.role||'-')+'\n'+'sala: '+(r.currentRoomCode||'-')+'\n'+'hostConfig: '+(isRemoteHostReady()?'sí':'no');}
+  window.TopolineaV189={showScreen,setFlow,applyRemoteVisibility,goMain,goConfig,updateDiag};
+  wire();applyRemoteVisibility('init');setInterval(()=>applyRemoteVisibility('tick'),1500);
+})();
+</script>
+
+
+<style id="v189-remote-create-room-fix-style">
+  #v190DiagPanel{position:fixed;right:8px;bottom:34px;z-index:100000;max-width:min(320px,92vw);padding:8px 10px;border-radius:12px;background:rgba(2,6,23,.92);color:#e5e7eb;border:1px solid rgba(250,204,21,.55);font:700 11px/1.35 system-ui,-apple-system,Segoe UI,sans-serif;box-shadow:0 8px 24px rgba(0,0,0,.35);pointer-events:none;white-space:pre-line;}
+  .remote-pre-name-v189{margin:12px 0;padding:12px;border-radius:16px;background:rgba(15,23,42,.54);border:1px solid rgba(148,163,184,.16);}
+  .remote-pre-name-v189 .remote-name-label-v136{margin:0;}
+</style>
+<script id="v189-remote-create-room-fix-js">
+(function(){
+  'use strict';
+  const $=(id)=>document.getElementById(id);
+  function setStatus(msg,kind){
+    const el=$('remoteStatusV132');
+    if(el){el.textContent=msg; if(kind) el.dataset.kind=kind;}
+  }
+  function moveNameInputBeforeCreate(){
+    const card=$('remoteComingCard');
+    const actions=card?.querySelector('.remote-room-actions-v132');
+    const label=card?.querySelector('.remote-name-label-v136');
+    if(!card||!actions||!label) return;
+    if(label.closest('.remote-pre-name-v189')) return;
+    const box=document.createElement('div');
+    box.className='remote-pre-name-v189';
+    box.appendChild(label);
+    actions.parentElement.insertBefore(box, actions);
+  }
+  function updateDiag(reason){
+    let p=$('v190DiagPanel');
+    if(!p){p=document.createElement('div');p.id='v190DiagPanel';document.body.appendChild(p);}
+    const r=window.TopolineaRemoteV132||{};
+    const visible = id => {const e=$(id); return !!e && getComputedStyle(e).display!=='none' && !e.hidden;};
+    p.textContent='v190 remote/create expose\n'
+      +'evento: '+(reason||'-')+'\n'
+      +'modo: '+(($('matchType')&&$('matchType').value)||window.__topolineaMatchType||'-')+'\n'
+      +'rol: '+(r.role||'-')+'\n'
+      +'sala: '+(r.currentRoomCode||'-')+'\n'
+      +'remoteCard visible: '+(visible('remoteComingCard')?'sí':'no')+'\n'
+      +'create fn: '+(typeof r.createRoom==='function'?'sí':'no');
+  }
+  function safeCall(fnName){
+    const r=window.TopolineaRemoteV132||{};
+    const fn=r[fnName];
+    if(typeof fn!=='function'){
+      setStatus('No se encontró la función remota '+fnName+'. Recarga el archivo v190.', 'error');
+      updateDiag('missing '+fnName);
+      return;
+    }
+    try{
+      const result=fn.call(r);
+      if(result && typeof result.catch==='function') result.catch(err=>{console.error(err);setStatus('Error remoto: '+err.message,'error');});
+    }catch(err){
+      console.error(err);
+      setStatus('Error remoto: '+err.message,'error');
+    }
+    setTimeout(()=>updateDiag('after '+fnName),250);
+    setTimeout(()=>updateDiag('after '+fnName+' 1200ms'),1200);
+  }
+  function bindRemoteButtons(){
+    const create=$('createRoomBtnV132');
+    if(create && !create.dataset.v189Bound){
+      create.dataset.v189Bound='1';
+      create.addEventListener('click',ev=>{
+        ev.preventDefault();
+        ev.stopImmediatePropagation();
+        moveNameInputBeforeCreate();
+        setStatus('Creando sala...', 'info');
+        safeCall('createRoom');
+      },true);
+    }
+    const join=$('joinRoomBtnV132');
+    if(join && !join.dataset.v189Bound){
+      join.dataset.v189Bound='1';
+      join.addEventListener('click',ev=>{
+        ev.preventDefault();
+        ev.stopImmediatePropagation();
+        setStatus('Intentando unirse...', 'info');
+        safeCall('joinRoom');
+      },true);
+    }
+  }
+  function init(){
+    moveNameInputBeforeCreate();
+    bindRemoteButtons();
+    updateDiag('init');
+  }
+  if(document.readyState==='loading') document.addEventListener('DOMContentLoaded',init); else init();
+  setTimeout(init,600);
+  setInterval(()=>{moveNameInputBeforeCreate();updateDiag('tick');},2500);
+})();
+</script>
+
+</body>
+</html>
