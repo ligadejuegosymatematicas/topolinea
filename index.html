@@ -11448,13 +11448,14 @@ window.TopolineaRemoteV132 = {
 // Nodo usado: gameHistory/{historyId}
 // Diseñado para funcionar con reglas tipo:
 // "gameHistory": { ".read": false, ".write": "auth != null" }
-const TOPOLINEA_HISTORY_VERSION_V171 = "topolinea-history-v172";
+const TOPOLINEA_HISTORY_VERSION_V171 = "topolinea-history-v173";
 const TOPOLINEA_HISTORY_TIMEZONE_V172 = "America/Santiago";
 let localHistoryIdV171 = null;
 let localHistoryFinishedV171 = false;
 let remoteHistoryFinishedV171 = new Set();
 let localHistoryStartClientV172 = null;
 let remoteHistoryStartClientV172 = new Map();
+let remoteHistoryIdByGameV173 = new Map();
 
 function pad2V172(n){
   return String(n).padStart(2, "0");
@@ -11468,6 +11469,7 @@ function datePartsInChileV172(ms){
     day: "numeric",
     hour: "2-digit",
     minute: "2-digit",
+    second: "2-digit",
     hourCycle: "h23"
   }).formatToParts(new Date(ms));
   const out = {};
@@ -11485,6 +11487,31 @@ function readableDateChileV172(ms){
 function isoDateChileV172(ms){
   // ISO universal para ordenar/calcular; la hora legible en Chile queda en *Readable.
   return new Date(ms).toISOString();
+}
+
+function historyIdDateChileV173(ms){
+  // Firebase no permite "/" en las claves. Por eso usamos guiones.
+  const p = datePartsInChileV172(ms);
+  return `${p.year}-${pad2V172(p.month === undefined ? 0 : monthNumberChileV173(p.month))}-${pad2V172(p.day)}_${pad2V172(p.hour)}-${pad2V172(p.minute)}-${pad2V172(p.second || 0)}`;
+}
+
+function monthNumberChileV173(monthName){
+  const months = {
+    "enero":1, "febrero":2, "marzo":3, "abril":4, "mayo":5, "junio":6,
+    "julio":7, "agosto":8, "septiembre":9, "setiembre":9, "octubre":10,
+    "noviembre":11, "diciembre":12
+  };
+  return months[String(monthName || "").toLowerCase()] || 0;
+}
+
+function safeHistoryIdV173(prefix, ms, extra){
+  const stamp = historyIdDateChileV173(ms);
+  const suffix = String(extra || Math.random().toString(36).slice(2,8))
+    .toLowerCase()
+    .replace(/[.#$/\[\]\\]/g, "-")
+    .replace(/[^a-z0-9_-]/g, "")
+    .slice(0, 18);
+  return `${prefix}_${stamp}_${suffix}`;
 }
 
 function startTimeFieldsV172(ms){
@@ -11607,20 +11634,133 @@ function remotePlayersV171(room){
   return result;
 }
 
+
+function normalizeStepForStatsV173(stateObj, r, c, dr, dc){
+  let nr = r + dr;
+  let nc = c + dc;
+  let ndr = dr;
+  let ndc = dc;
+
+  if(nc < 0 || nc >= stateObj.cols){
+    if(stateObj.wrapH){
+      nc = (nc + stateObj.cols) % stateObj.cols;
+      if(stateObj.flipH){
+        nr = stateObj.rows - 1 - nr;
+        ndr = -ndr;
+      }
+    }else return null;
+  }
+
+  if(nr < 0 || nr >= stateObj.rows){
+    if(stateObj.wrapV){
+      nr = (nr + stateObj.rows) % stateObj.rows;
+      if(stateObj.flipV){
+        nc = stateObj.cols - 1 - nc;
+        ndc = -ndc;
+      }
+    }else return null;
+  }
+
+  if(nr < 0 || nr >= stateObj.rows || nc < 0 || nc >= stateObj.cols) return null;
+  return {r:nr, c:nc, dr:ndr, dc:ndc};
+}
+
+function collectStatsDirectionV173(stateObj, r, c, dr, dc, team){
+  const cells = [];
+  let cr = r, cc = c, cdr = dr, cdc = dc;
+  const maxSteps = Math.max(1, Number(stateObj.rows || 0) * Number(stateObj.cols || 0));
+  for(let step=1; step<=maxSteps; step++){
+    const nxt = normalizeStepForStatsV173(stateObj, cr, cc, cdr, cdc);
+    if(!nxt) break;
+    const kk = `${nxt.r},${nxt.c}`;
+    if(stateObj.blocked?.has?.(kk) || stateObj.board?.[nxt.r]?.[nxt.c] !== team) break;
+    if(cells.some(([rr,cc2]) => rr === nxt.r && cc2 === nxt.c)) break;
+    cells.push([nxt.r,nxt.c]);
+    cr=nxt.r; cc=nxt.c; cdr=nxt.dr; cdc=nxt.dc;
+  }
+  return cells;
+}
+
+function maxConnectionsFromStateV173(){
+  const s = window.state || {};
+  const result = { A: 0, B: 0 };
+  if(!Array.isArray(s.board)) return result;
+
+  const dirs = [[1,0],[0,1],[1,1],[1,-1]];
+  for(let r=0; r<Number(s.rows || 0); r++){
+    for(let c=0; c<Number(s.cols || 0); c++){
+      const team = s.board?.[r]?.[c];
+      if(team !== "A" && team !== "B") continue;
+      for(const [dr,dc] of dirs){
+        const forward = collectStatsDirectionV173(s, r, c, dr, dc, team);
+        const backward = collectStatsDirectionV173(s, r, c, -dr, -dc, team);
+        const seen = new Set();
+        let length = 0;
+        for(const cell of [...backward.reverse(), [r,c], ...forward]){
+          const kk = `${cell[0]},${cell[1]}`;
+          if(seen.has(kk)) break;
+          seen.add(kk);
+          length++;
+        }
+        result[team] = Math.max(result[team] || 0, length);
+      }
+    }
+  }
+  return result;
+}
+
+function endReasonFromStateV173(source, resultType){
+  const s = window.state || {};
+  if(source === "clock" || resultType === "time") return "time";
+  if(source === "host_ended") return "host_ended";
+  if(s.winner) return "connect";
+  if(s.gameOver) return "board_full";
+  return source || "unknown";
+}
+
 function resultFromStateV171(source){
   const s = window.state || {};
   let resultType = "unknown";
   if(s.winner) resultType = source === "clock" ? "time" : "victory";
   else if(s.gameOver) resultType = "draw";
 
+  const moveCount = Array.isArray(s.history) ? s.history.length : Number(s.moveIndex || 0);
+  const maxConnections = maxConnectionsFromStateV173();
+  const timeRemaining = {
+    A: Number.isFinite(Number(s.timeA)) ? Math.max(0, Number(s.timeA)) : null,
+    B: Number.isFinite(Number(s.timeB)) ? Math.max(0, Number(s.timeB)) : null
+  };
+  const endReason = endReasonFromStateV173(source, resultType);
+
   return {
     winner: s.winner || null,
     resultType,
+    endReason,
     source: source || null,
-    moves: Array.isArray(s.history) ? s.history.length : Number(s.moveIndex || 0),
+    moveCount,
+    moves: moveCount,
     finalMoveIndex: Number(s.moveIndex || 0),
-    timeA: Number.isFinite(Number(s.timeA)) ? Math.max(0, Number(s.timeA)) : null,
-    timeB: Number.isFinite(Number(s.timeB)) ? Math.max(0, Number(s.timeB)) : null
+    maxConnection: maxConnections,
+    maxConnectionA: maxConnections.A,
+    maxConnectionB: maxConnections.B,
+    timeRemaining,
+    timeA: timeRemaining.A,
+    timeB: timeRemaining.B
+  };
+}
+
+function finalStatsFieldsV173(source){
+  const result = resultFromStateV171(source);
+  return {
+    result,
+    winner: result.winner,
+    resultType: result.resultType,
+    endReason: result.endReason,
+    moveCount: result.moveCount,
+    maxConnection: result.maxConnection,
+    maxConnectionA: result.maxConnectionA,
+    maxConnectionB: result.maxConnectionB,
+    timeRemaining: result.timeRemaining
   };
 }
 
@@ -11652,7 +11792,7 @@ async function startLocalHistoryV171(){
   if(!firebaseAuthReadyV170) return;
 
   const startClient = Date.now();
-  localHistoryIdV171 = "local_" + startClient + "_" + Math.random().toString(36).slice(2,8);
+  localHistoryIdV171 = safeHistoryIdV173("local", startClient, Math.random().toString(36).slice(2,8));
   localHistoryFinishedV171 = false;
   localHistoryStartClientV172 = startClient;
 
@@ -11680,8 +11820,9 @@ async function startRemoteHistoryV171(code, gameId, config, room){
   if(!code || !gameId || !firebaseAuthReadyV170) return;
   if(window.TopolineaRemoteV132?.role !== "host") return;
 
-  const historyId = `remote_${code}_${gameId}`;
   const startClient = Date.now();
+  const historyId = safeHistoryIdV173("remote", startClient, `${code}_${gameId}`);
+  remoteHistoryIdByGameV173.set(`${code}_${gameId}`, historyId);
   remoteHistoryFinishedV171.delete(historyId);
   remoteHistoryStartClientV172.set(historyId, startClient);
 
@@ -11718,7 +11859,7 @@ async function finishCurrentHistoryV171(source){
     if(!code || !gameId) return;
     if(window.TopolineaRemoteV132?.role !== "host") return;
 
-    const historyId = `remote_${code}_${gameId}`;
+    const historyId = remoteHistoryIdByGameV173.get(`${code}_${gameId}`) || `remote_${code}_${gameId}`;
     if(remoteHistoryFinishedV171.has(historyId)) return;
     remoteHistoryFinishedV171.add(historyId);
 
@@ -11729,7 +11870,7 @@ async function finishCurrentHistoryV171(source){
       endedAt: serverTimestamp(),
       ...endTimeFieldsV172(startClient, endClient),
       playersFinal: remotePlayersV171(room),
-      result: resultFromStateV171(source)
+      ...finalStatsFieldsV173(source)
     });
     return;
   }
@@ -11747,13 +11888,14 @@ async function finishCurrentHistoryV171(source){
 async function finishRemoteByHostEndV171(code, gameId, room){
   if(!code || !gameId || !firebaseAuthReadyV170) return;
   if(window.TopolineaRemoteV132?.role !== "host") return;
-  const historyId = `remote_${code}_${gameId}`;
+  const historyId = remoteHistoryIdByGameV173.get(`${code}_${gameId}`) || `remote_${code}_${gameId}`;
   if(remoteHistoryFinishedV171.has(historyId)) return;
   remoteHistoryFinishedV171.add(historyId);
 
   const baseResult = resultFromStateV171("host_ended");
   if(!window.state?.gameOver){
     baseResult.resultType = "host_ended";
+    baseResult.endReason = "host_ended";
     baseResult.winner = null;
   }
 
@@ -11763,7 +11905,15 @@ async function finishRemoteByHostEndV171(code, gameId, room){
     endedAt: serverTimestamp(),
     ...endTimeFieldsV172(startClient, endClient),
     playersFinal: remotePlayersV171(room),
-    result: baseResult
+    result: baseResult,
+    winner: baseResult.winner,
+    resultType: baseResult.resultType,
+    endReason: baseResult.endReason,
+    moveCount: baseResult.moveCount,
+    maxConnection: baseResult.maxConnection,
+    maxConnectionA: baseResult.maxConnectionA,
+    maxConnectionB: baseResult.maxConnectionB,
+    timeRemaining: baseResult.timeRemaining
   });
 }
 
