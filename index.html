@@ -15449,5 +15449,146 @@ body.v200-remote-config-active #startScreen .config-head p{
 })();
 </script>
 
+
+
+<style id="v205-remote-return-stable-button-style">
+  #versionMarkerV204,#versionMarkerV203,#versionMarkerV202,#versionMarkerV201,#versionMarkerV200,#versionMarkerV199,#versionMarkerV198,#versionMarkerV197,#versionMarkerV196,#versionMarkerV195,#versionMarkerV194,#versionMarkerV193,#versionMarkerV192,#versionMarkerV191,#v190DiagPanel,#v188VisibleMarker{display:none!important;visibility:hidden!important;opacity:0!important;}
+  body.v205-can-return-remote-game #reconnectRoomBtnV141,
+  body.v205-can-return-remote-game #reconnectRoomBtnV141.v202-return-hidden,
+  body.v205-can-return-remote-game #reconnectRoomBtnV141.v204-return-hidden{
+    display:block!important;
+    visibility:visible!important;
+    opacity:1!important;
+  }
+  body:not(.v205-can-return-remote-game) #reconnectRoomBtnV141.v205-return-hidden{
+    display:none!important;
+    visibility:hidden!important;
+  }
+</style>
+<script id="v205-remote-return-stable-button-js">
+(function(){
+  'use strict';
+  var VERSION='v205';
+  var FLAG='topolineaCanReturnRemoteGameV205';
+  var CODE='topolineaReturnRoomCodeV205';
+  function $(id){ return document.getElementById(id); }
+  function norm(v){ return String(v == null ? '' : v).trim().toUpperCase(); }
+  function codeLike(v){ return /^[A-Z0-9]{4,10}$/.test(norm(v)); }
+  function rObj(){ return window.TopolineaRemoteV132 || {}; }
+  function snap(){ return rObj().lastRoomSnapshot || null; }
+  function visibleCode(){
+    var ids=['remoteRoomCodeV132','roomCodeV132','currentRoomCodeV132'];
+    for(var i=0;i<ids.length;i++){ var el=$(ids[i]); if(el && codeLike(el.textContent)) return norm(el.textContent); }
+    var input=$('joinRoomCodeV132'); if(input && codeLike(input.value)) return norm(input.value);
+    try{ var c=sessionStorage.getItem(CODE); if(codeLike(c)) return norm(c); }catch(e){}
+    return '';
+  }
+  function roomCode(){
+    var r=rObj();
+    var c=norm(r.currentRoomCode || r.roomCode || r.activeRoomCode || '');
+    if(codeLike(c)) return c;
+    return visibleCode();
+  }
+  function roomStatus(){
+    var s=snap(); var r=rObj(); var dom=$('remoteRoomStateV132');
+    return String((s && s.status) || r.status || (dom && dom.textContent) || '').trim().toLowerCase();
+  }
+  function ended(){ return ['abandoned','finalized','finished','ended','closed'].indexOf(roomStatus())>=0; }
+  function startedOrUnknownButRecoverable(){
+    var s=roomStatus();
+    var r=rObj(); var sn=snap();
+    return !ended() && (s==='' || s==='started' || s==='playing' || !!r.currentGameId || !!(sn && sn.gameId));
+  }
+  function remoteGameVisible(){
+    var g=$('gameScreen'), m=$('matchType');
+    return !!(g && g.classList.contains('active') && m && String(m.value).toLowerCase()==='remote' && roomCode() && !ended());
+  }
+  function rememberReturn(){
+    if(!remoteGameVisible()) return;
+    var c=roomCode();
+    try{ sessionStorage.setItem(FLAG,'1'); if(c) sessionStorage.setItem(CODE,c); }catch(e){}
+    apply();
+  }
+  function clearReturn(){
+    try{
+      sessionStorage.removeItem(FLAG);
+      sessionStorage.removeItem(CODE);
+      sessionStorage.removeItem('topolineaCanReturnRemoteGameV204');
+      sessionStorage.removeItem('topolineaCanReturnRemoteGameV203');
+      sessionStorage.removeItem('topolineaCanReturnRemoteGameV202');
+    }catch(e){}
+    apply();
+  }
+  function canReturn(){
+    var flag=false;
+    try{ flag=sessionStorage.getItem(FLAG)==='1' || sessionStorage.getItem('topolineaCanReturnRemoteGameV204')==='1'; }catch(e){}
+    return !!(flag && roomCode() && startedOrUnknownButRecoverable());
+  }
+  function neutralStatus(){
+    var el=$('remoteStatusV132');
+    if(el && /firebase/i.test(el.textContent||'')){
+      el.textContent='Listo para crear o unirte a una sala.';
+      el.removeAttribute('data-kind');
+    }
+  }
+  function versionBadge(){
+    ['versionMarkerV204','versionMarkerV203','versionMarkerV202','versionMarkerV201','versionMarkerV200','versionMarkerV199','versionMarkerV198','versionMarkerV197','versionMarkerV196','versionMarkerV195','versionMarkerV194','versionMarkerV193','versionMarkerV192','versionMarkerV191','v190DiagPanel','v188VisibleMarker'].forEach(function(id){ var el=$(id); if(el) el.remove(); });
+    var b=$('versionMarkerV205');
+    if(!b){
+      b=document.createElement('div');
+      b.id='versionMarkerV205';
+      b.style.cssText='position:fixed;right:8px;bottom:8px;z-index:99999;background:#111827;color:#facc15;border:1px solid #facc15;border-radius:999px;padding:4px 8px;font:700 11px system-ui;opacity:.75;pointer-events:none';
+      document.body.appendChild(b);
+    }
+    b.textContent=VERSION;
+  }
+  function apply(){
+    versionBadge(); neutralStatus();
+    var btn=$('reconnectRoomBtnV141');
+    var show=canReturn();
+    document.body.classList.toggle('v205-can-return-remote-game', show);
+    if(btn){
+      btn.textContent='Volver a la partida';
+      btn.hidden=!show;
+      btn.classList.toggle('v205-return-hidden', !show);
+      if(show){
+        btn.classList.remove('v202-return-hidden','v204-return-hidden');
+        btn.style.display='block';
+        btn.style.visibility='visible';
+        btn.style.opacity='1';
+      }else{
+        btn.style.display='none';
+      }
+    }
+    if(ended()) clearReturnNoApply();
+  }
+  function clearReturnNoApply(){
+    try{ sessionStorage.removeItem(FLAG); sessionStorage.removeItem(CODE); sessionStorage.removeItem('topolineaCanReturnRemoteGameV204'); }catch(e){}
+    document.body.classList.remove('v205-can-return-remote-game');
+  }
+  function patch(){
+    if(document.documentElement.dataset.v205ReturnStable==='1') return;
+    document.documentElement.dataset.v205ReturnStable='1';
+    ['pointerdown','touchstart','mousedown','click'].forEach(function(type){
+      document.addEventListener(type,function(ev){
+        var back=ev.target && ev.target.closest && ev.target.closest('#backBtn');
+        if(back) rememberReturn();
+      },true);
+    });
+    document.addEventListener('click',function(ev){
+      var t=ev.target && ev.target.closest && ev.target.closest('button,input');
+      var id=t && t.id || '';
+      if(['configHomeBtnV179','playLocalBtnV177','createRoomBtnV132','joinRoomBtnV132'].indexOf(id)>=0){
+        clearReturn();
+      }
+      setTimeout(apply,50); setTimeout(apply,250); setTimeout(apply,900);
+    },true);
+  }
+  function init(){ patch(); apply(); setTimeout(apply,80); setTimeout(apply,300); setTimeout(apply,900); }
+  if(document.readyState==='loading') document.addEventListener('DOMContentLoaded',init); else init();
+  setInterval(apply,250);
+})();
+</script>
+
 </body>
 </html>
