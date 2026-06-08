@@ -6170,6 +6170,53 @@ body.viewer-open #gameScreen .board-limit{
 }
 </style>
 
+
+
+<style id="v229-home-compact-style">
+/* ===== v229: portada más compacta y sin duplicar el nombre ===== */
+#mainMenuScreen .v177-title{
+  display:none !important;
+}
+#mainMenuScreen .v177-card{
+  padding-top:18px !important;
+  padding-bottom:20px !important;
+}
+#mainMenuScreen .v177-logo{
+  width:min(360px,84%) !important;
+  margin-bottom:6px !important;
+}
+#mainMenuScreen .v177-lead{
+  margin-bottom:14px !important;
+  line-height:1.32 !important;
+}
+#mainMenuScreen .v177-actions{
+  margin-top:10px !important;
+  gap:12px !important;
+}
+#mainMenuScreen .v177-big-btn{
+  min-height:82px !important;
+}
+@media(max-width:760px){
+  #mainMenuScreen .v177-card{
+    padding:16px !important;
+  }
+  #mainMenuScreen .v177-logo{
+    width:min(330px,86%) !important;
+    margin-bottom:4px !important;
+  }
+  #mainMenuScreen .v177-lead{
+    font-size:.98rem !important;
+    margin-bottom:12px !important;
+  }
+  #mainMenuScreen .v177-actions{
+    gap:10px !important;
+  }
+  #mainMenuScreen .v177-big-btn{
+    min-height:78px !important;
+  }
+}
+</style>
+
 <style id="v100-remove-logo-ellipses-style">
 /* v100: eliminar elipses/órbitas decorativas detrás del logo, sin tocar la escena inferior */
 .hero-logo .orbit,
@@ -7352,16 +7399,32 @@ body.v183-local-entry #remoteComingCard{
   z-index:6 !important;
 }
 </style>
+
+
+<style id="v229-texts-home-button-style">
+/* ===== v229: textos de portada y botón Inicio del visualizador ===== */
+#surfaceViewerIntroScreen button,
+#surfaceViewerScreen button{
+  font-weight:1000;
+}
+#surfaceViewerIntroScreen button.secondary,
+#surfaceViewerScreen button.secondary{
+  background:linear-gradient(90deg,#fde68a,#facc15) !important;
+  color:#422006 !important;
+  border:1px solid rgba(250,204,21,.48) !important;
+  box-shadow:0 10px 24px rgba(250,204,21,.14) !important;
+}
+</style>
 </head>
 <body data-v191="1">
   <div id="versionMarkerV191" style="position:fixed;right:8px;bottom:8px;z-index:99999;background:#111827;color:#facc15;border:1px solid #facc15;border-radius:999px;padding:4px 8px;font:700 11px system-ui;opacity:.75;pointer-events:none">v191</div>
-  <div id="buildVersionMarkerV194" style="display:none">topolinea-history-v194-remote-abandon-fix</div>
+  <div id="buildVersionMarkerV194" style="display:none">topolinea-v229-surface-viewer-max-lines-home-compact</div>
   <section id="mainMenuScreen" class="screen active">
     <div class="v177-shell">
       <div class="v177-card">
         <img class="v177-logo" id="mainMenuLogoV177" alt="Topolínea">
         <h1 class="v177-title">Topolínea</h1>
-        <p class="v177-lead">Conecta, bloquea y explora cómo cambia una misma idea sobre distintas superficies.</p>
+        <p class="v177-lead">Conecta líneas sobre superficies que transforman el tablero.</p>
         <div class="v177-actions">
           <button type="button" id="mainPlayBtnV177" class="v177-big-btn">
             <strong>Jugar</strong>
@@ -7369,7 +7432,7 @@ body.v183-local-entry #remoteComingCard{
           </button>
           <button type="button" id="mainSurfacesBtnV177" class="v177-big-btn">
             <strong>Visualizar superficies</strong>
-            <span>Herramienta educativa para posiciones y superficies 3D.</span>
+            <span>Construye o escanea posiciones y obsérvalas en 3D.</span>
           </button>
         </div>
       </div>
@@ -7412,7 +7475,7 @@ body.v183-local-entry #remoteComingCard{
             <h2 class="v177-title">Visualizar superficies</h2>
             <p class="v177-lead">Construye una posición o escanea un tablero físico y visualízalo sobre distintas superficies.</p>
           </div>
-          <button type="button" id="surfacesBackBtnV177" class="secondary v177-back">Volver al menú</button>
+          <button type="button" id="surfacesBackBtnV177" class="secondary v177-back">Inicio</button>
         </div>
 
         <div class="v206-compact-settings">
@@ -8463,7 +8526,7 @@ function render(){
   document.body.classList.toggle("surface-torus-v107", state.surfaceType==="torus");
   document.body.classList.toggle("surface-mobius-v107", state.surfaceType==="mobius");
   document.body.classList.toggle("surface-klein-v109", state.surfaceType==="klein");
-  const winSet=new Set(state.winningCells.map(([r,c])=>key(r,c)));
+  const winSet=v227WinningKeySet();
   const last=state.history[state.history.length-1];
   for(let r=0;r<state.rows;r++){
     for(let c=0;c<state.cols;c++){
@@ -8907,6 +8970,81 @@ function pointFor(r,c){
   const v=(r+0.5)/state.rows;
   return paramPoint(u,v);
 }
+function v227GetWinningLines(){
+  const raw = Array.isArray(state.v227WinningLines) && state.v227WinningLines.length
+    ? state.v227WinningLines
+    : (state.winningCells && state.winningCells.length>=2 ? [state.winningCells] : []);
+  return raw
+    .map(line => line.map(p => Array.isArray(p) ? p : [p.r,p.c]).filter(p => p.length>=2))
+    .filter(line => line.length>=2);
+}
+function v227WinningKeySet(){
+  const set=new Set();
+  v227GetWinningLines().forEach(line=>line.forEach(([r,c])=>set.add(key(r,c))));
+  return set;
+}
+function v227CellUV(r,c){
+  return {u:(c+0.5)/state.cols, v:(r+0.5)/state.rows};
+}
+function v227ContinuousLineUV(line){
+  if(!line || line.length<2) return [];
+  const pts=[];
+  let prev=v227CellUV(line[0][0],line[0][1]);
+  pts.push(prev);
+  for(let i=1;i<line.length;i++){
+    const raw=v227CellUV(line[i][0],line[i][1]);
+    let u=raw.u, v=raw.v;
+    if(state.wrapH){
+      const candidates=[raw.u-1, raw.u, raw.u+1];
+      u=candidates.reduce((best,x)=>Math.abs(x-prev.u)<Math.abs(best-prev.u)?x:best, raw.u);
+    }
+    if(state.wrapV){
+      const candidates=[raw.v-1, raw.v, raw.v+1];
+      v=candidates.reduce((best,x)=>Math.abs(x-prev.v)<Math.abs(best-prev.v)?x:best, raw.v);
+    }
+    const cur={u,v};
+    pts.push(cur);
+    prev=cur;
+  }
+  return pts;
+}
+function v227ProjectedWinningCurve(line, projector, samplesPerSegment=14){
+  const uv=v227ContinuousLineUV(line);
+  if(uv.length<2) return [];
+  const out=[];
+  for(let i=0;i<uv.length-1;i++){
+    const a=uv[i], b=uv[i+1];
+    const samples=i===0 ? samplesPerSegment : samplesPerSegment;
+    for(let j=0;j<=samples;j++){
+      if(i>0 && j===0) continue;
+      const t=j/samples;
+      out.push(projector(a.u+(b.u-a.u)*t, a.v+(b.v-a.v)*t));
+    }
+  }
+  return out;
+}
+function v227DrawWinningLines3D(projector, drawCurveFn){
+  const lines=v227GetWinningLines();
+  if(!lines.length) return;
+  for(const line of lines){
+    const pts=v227ProjectedWinningCurve(line, projector, 16);
+    if(pts.length<2) continue;
+    drawCurveFn(pts,{
+      stroke:"rgba(250,204,21,.96)",
+      width:8.0,
+      alpha:.94,
+      shadow:"rgba(250,204,21,.55)",
+      blur:16
+    });
+    drawCurveFn(pts,{
+      stroke:"rgba(255,255,255,.72)",
+      width:1.55,
+      alpha:.84,
+      shadow:"transparent",
+      blur:0
+    });
+  }
+}
 
 function drawKleinVisual(W,H){
   // v121 — Fase 1 Klein:
@@ -9172,22 +9310,9 @@ function drawKleinVisual(W,H){
     }
   }
 
-  // 7) Línea ganadora.
-  if(state.winningCells && state.winningCells.length>=2){
-    const pts=state.winningCells.map(([r,c])=>pointForK(r,c));
-    drawCurve(pts,{
-      stroke:"rgba(250,204,21,.95)",
-      width:8.0,
-      alpha:.92,
-      shadow:"rgba(250,204,21,.52)",
-      blur:15
-    });
-    drawCurve(pts,{
-      stroke:"rgba(255,255,255,.64)",
-      width:1.5,
-      alpha:.80
-    });
-  }
+  // 7) Líneas ganadoras sobre la botella de Klein (v227).
+  // Se interpolan en coordenadas paramétricas para respetar costuras normales e invertidas.
+  v227DrawWinningLines3D((u,v)=>K(u,v), drawCurve);
 
   // 8) Fichas.
   const stones=[];
@@ -9261,7 +9386,7 @@ function draw3d(){
     ctx.restore(); return;
   }
 
-  const winSet=new Set(state.winningCells.map(([r,c])=>key(r,c)));
+  const winSet=v227WinningKeySet();
 
   // Superficie completa: se dibuja una malla paramétrica cerrada, no solo casillas ocupadas.
   const uSteps = state.surfaceType==="klein" ? Math.max(28, state.cols*4) : Math.max(24, state.cols*4);
@@ -9573,15 +9698,9 @@ function draw3d(){
   }
   items.sort((a,b)=>a.q.z-b.q.z);
 
-  // línea ganadora sobre la superficie
-  if(state.winningCells.length>=2){
-    const pts=state.winningCells.map(([r,c])=>proj(pointFor(r,c)));
-    ctx.beginPath();
-    pts.forEach((p,i)=>{ if(i===0)ctx.moveTo(p.x,p.y); else ctx.lineTo(p.x,p.y); });
-    ctx.strokeStyle="rgba(250,204,21,.9)";
-    ctx.lineWidth=5;
-    ctx.stroke();
-  }
+  // líneas ganadoras sobre la superficie (v227): usa las mismas líneas del análisis
+  // y las interpola sobre la parametrización, respetando identificaciones.
+  v227DrawWinningLines3D((u,v)=>proj(paramPoint(u,v)), drawSurfaceCurve);
 
   for(const it of items){
     const rad=7.4*it.q.f*view.zoom;
@@ -16516,7 +16635,7 @@ body.v200-remote-config-active #startScreen .config-head p{
 <script id="v214-surface-viewer-start-js">
 (function(){
   'use strict';
-  const VERSION='v226';
+  const VERSION='v229';
   const $=id=>document.getElementById(id);
   const letters='ABCDEFGHIJKLMNOPQRSTUVWXYZ'.split('');
   let n=10, k=6, tool='A', surface='plane';
@@ -16597,13 +16716,22 @@ body.v200-remote-config-active #startScreen .config-head p{
     if(nr<0 || nr>=n || nc<0 || nc>=n) return null;
     return {r:nr,c:nc,dr:ndr,dc:ndc};
   }
+  function v229CanonicalLineKey(line){
+    /* v229: elimina duplicados producidos por recorrer la misma conexión desde
+       ambos extremos o por direcciones opuestas. Para el objetivo visual basta
+       identificar una conexión por el conjunto de casillas que ocupa. */
+    return line.map(p=>p.r+','+p.c).sort().join('|');
+  }
   function v223AnalyzePlayer(player){
     /* v226: se exploran las 8 direcciones. En superficies con inversión,
        una línea puede cambiar su dirección aparente al cruzar el borde, por lo
        que las 4 direcciones canónicas ya no bastan para encontrar todos los
-       segmentos correctos. */
+       segmentos correctos.
+       v229: se guardan todas las conexiones de longitud máxima, no solo una. */
     const dirs=[[0,1],[0,-1],[1,0],[-1,0],[1,1],[-1,-1],[1,-1],[-1,1]];
-    let best={len:0,line:[]};
+    let bestLen=0;
+    let bestLines=[];
+    let bestKeys=new Set();
     for(let r=0;r<n;r++){
       for(let c=0;c<n;c++){
         if(board[r]?.[c]!==player) continue;
@@ -16621,11 +16749,23 @@ body.v200-remote-config-active #startScreen .config-head p{
             if(!next) break;
             cr=next.r; cc=next.c; dr=next.dr; dc=next.dc;
           }
-          if(line.length>best.len) best={len:line.length,line};
+          if(!line.length) continue;
+          if(line.length>bestLen){
+            bestLen=line.length;
+            bestLines=[];
+            bestKeys=new Set();
+          }
+          if(line.length===bestLen){
+            const k=v229CanonicalLineKey(line);
+            if(!bestKeys.has(k)){
+              bestKeys.add(k);
+              bestLines.push(line);
+            }
+          }
         }
       }
     }
-    return best;
+    return {len:bestLen,line:bestLines[0] || [],lines:bestLines};
   }
   function v223AnalyzePosition(){
     const ct=counts();
@@ -16635,8 +16775,8 @@ body.v200-remote-config-active #startScreen .config-head p{
     if(A.len>=V223_TARGET) winners.push('A');
     if(B.len>=V223_TARGET) winners.push('B');
     const winKeys=new Map();
-    if(A.len>=V223_TARGET) A.line.forEach(p=>winKeys.set(p.r+','+p.c,'A'));
-    if(B.len>=V223_TARGET) B.line.forEach(p=>winKeys.set(p.r+','+p.c,'B'));
+    if(A.len>=V223_TARGET) A.lines.forEach(line=>line.forEach(p=>winKeys.set(p.r+','+p.c,'A')));
+    if(B.len>=V223_TARGET) B.lines.forEach(line=>line.forEach(p=>winKeys.set(p.r+','+p.c,'B')));
     return {counts:ct,A,B,winners,winKeys};
   }
   function v223UpdateAnalysisPanel(analysis){
@@ -16739,7 +16879,12 @@ body.v200-remote-config-active #startScreen .config-head p{
     s.moveIndex=0;
     s.gameOver=false;
     s.winner=null;
-    s.winningCells=[];
+    const analysis=v223AnalyzePosition();
+    const winLines=[];
+    if(analysis.A.len>=V223_TARGET) analysis.A.lines.forEach(line=>winLines.push(line.map(p=>[p.r,p.c])));
+    if(analysis.B.len>=V223_TARGET) analysis.B.lines.forEach(line=>winLines.push(line.map(p=>[p.r,p.c])));
+    s.v227WinningLines=winLines;
+    s.winningCells=winLines[0] || [];
     s.history=[];
     s.clockOn=false;
     return true;
