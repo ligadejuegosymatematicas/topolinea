@@ -6994,9 +6994,9 @@ body.v183-local-entry #remoteComingCard{
 </style>
 
 </head>
-<body data-v188="1">
-  <div id="v188VisibleMarker" style="position:fixed;right:8px;bottom:8px;z-index:99999;background:#111827;color:#facc15;border:1px solid #facc15;border-radius:999px;padding:4px 8px;font:700 11px system-ui;opacity:.75;pointer-events:none">v188</div>
-  <div id="buildVersionMarkerV190" style="display:none">topolinea-history-v190-remote-create-expose</div>
+<body data-v191="1">
+  <div id="versionMarkerV191" style="position:fixed;right:8px;bottom:8px;z-index:99999;background:#111827;color:#facc15;border:1px solid #facc15;border-radius:999px;padding:4px 8px;font:700 11px system-ui;opacity:.75;pointer-events:none">v191</div>
+  <div id="buildVersionMarkerV191" style="display:none">topolinea-history-v191-clean-remote-link-fix</div>
   <section id="mainMenuScreen" class="screen active">
     <div class="v177-shell">
       <div class="v177-card">
@@ -13718,7 +13718,6 @@ if(lastRoom){
 
 
 <style id="v188-remote-nav-fix-style">
-  #v190DiagPanel{position:fixed;right:8px;bottom:34px;z-index:100000;max-width:min(300px,92vw);padding:8px 10px;border-radius:12px;background:rgba(2,6,23,.92);color:#e5e7eb;border:1px solid rgba(34,211,238,.55);font:700 11px/1.35 system-ui,-apple-system,Segoe UI,sans-serif;box-shadow:0 8px 24px rgba(0,0,0,.35);pointer-events:none;white-space:pre-line;}
   body.v188-remote-prehost #localConfigWrap,
   body.v188-remote-prehost .v83-options-group,
   body.v188-remote-prehost .v83-preview-group,
@@ -13779,8 +13778,8 @@ if(lastRoom){
       $(id)?.addEventListener('click',()=>{setTimeout(()=>applyRemoteVisibility('after '+id+' 250ms'),250);setTimeout(()=>applyRemoteVisibility('after '+id+' 1000ms'),1000);},true);
     });
   }
-  function ensureDiag(){let p=$('v190DiagPanel');if(!p){p=document.createElement('div');p.id='v190DiagPanel';document.body.appendChild(p);}return p;}
-  function updateDiag(reason){const r=remoteObj();const p=ensureDiag();p.textContent='v190 remote/create expose\n'+'evento: '+(reason||'-')+'\n'+'pantalla: '+activeScreen()+'\n'+'modo: '+currentMode()+'\n'+'rol: '+(r.role||'-')+'\n'+'sala: '+(r.currentRoomCode||'-')+'\n'+'hostConfig: '+(isRemoteHostReady()?'sí':'no');}
+  function ensureDiag(){return null;}
+  function updateDiag(reason){ /* v191: diagnóstico visual eliminado */ }
   window.TopolineaV189={showScreen,setFlow,applyRemoteVisibility,goMain,goConfig,updateDiag};
   wire();applyRemoteVisibility('init');setInterval(()=>applyRemoteVisibility('tick'),1500);
 })();
@@ -13788,7 +13787,6 @@ if(lastRoom){
 
 
 <style id="v189-remote-create-room-fix-style">
-  #v190DiagPanel{position:fixed;right:8px;bottom:34px;z-index:100000;max-width:min(320px,92vw);padding:8px 10px;border-radius:12px;background:rgba(2,6,23,.92);color:#e5e7eb;border:1px solid rgba(250,204,21,.55);font:700 11px/1.35 system-ui,-apple-system,Segoe UI,sans-serif;box-shadow:0 8px 24px rgba(0,0,0,.35);pointer-events:none;white-space:pre-line;}
   .remote-pre-name-v189{margin:12px 0;padding:12px;border-radius:16px;background:rgba(15,23,42,.54);border:1px solid rgba(148,163,184,.16);}
   .remote-pre-name-v189 .remote-name-label-v136{margin:0;}
 </style>
@@ -13811,24 +13809,12 @@ if(lastRoom){
     box.appendChild(label);
     actions.parentElement.insertBefore(box, actions);
   }
-  function updateDiag(reason){
-    let p=$('v190DiagPanel');
-    if(!p){p=document.createElement('div');p.id='v190DiagPanel';document.body.appendChild(p);}
-    const r=window.TopolineaRemoteV132||{};
-    const visible = id => {const e=$(id); return !!e && getComputedStyle(e).display!=='none' && !e.hidden;};
-    p.textContent='v190 remote/create expose\n'
-      +'evento: '+(reason||'-')+'\n'
-      +'modo: '+(($('matchType')&&$('matchType').value)||window.__topolineaMatchType||'-')+'\n'
-      +'rol: '+(r.role||'-')+'\n'
-      +'sala: '+(r.currentRoomCode||'-')+'\n'
-      +'remoteCard visible: '+(visible('remoteComingCard')?'sí':'no')+'\n'
-      +'create fn: '+(typeof r.createRoom==='function'?'sí':'no');
-  }
+  function updateDiag(reason){ /* v191: diagnóstico visual eliminado */ }
   function safeCall(fnName){
     const r=window.TopolineaRemoteV132||{};
     const fn=r[fnName];
     if(typeof fn!=='function'){
-      setStatus('No se encontró la función remota '+fnName+'. Recarga el archivo v190.', 'error');
+      setStatus('No se encontró la función remota '+fnName+'. Recarga el archivo v191.', 'error');
       updateDiag('missing '+fnName);
       return;
     }
@@ -13873,6 +13859,142 @@ if(lastRoom){
   if(document.readyState==='loading') document.addEventListener('DOMContentLoaded',init); else init();
   setTimeout(init,600);
   setInterval(()=>{moveNameInputBeforeCreate();updateDiag('tick');},2500);
+})();
+</script>
+
+
+<style id="v191-clean-style">
+  #v190DiagPanel,
+  #v188VisibleMarker{
+    display:none !important;
+    visibility:hidden !important;
+    opacity:0 !important;
+  }
+</style>
+<script id="v191-clean-remote-link-fix-js">
+(function(){
+  'use strict';
+  const VERSION='v191';
+  const $=(id)=>document.getElementById(id);
+  const screens=['mainMenuScreen','playModeScreen','surfaceViewerIntroScreen','startScreen','gameScreen'];
+
+  function removeDiagnostics(){
+    ['v190DiagPanel','v188VisibleMarker'].forEach(id=>$(id)?.remove());
+    let badge=$('versionMarkerV191');
+    if(!badge){
+      badge=document.createElement('div');
+      badge.id='versionMarkerV191';
+      badge.style.cssText='position:fixed;right:8px;bottom:8px;z-index:99999;background:#111827;color:#facc15;border:1px solid #facc15;border-radius:999px;padding:4px 8px;font:700 11px system-ui;opacity:.75;pointer-events:none';
+      document.body.appendChild(badge);
+    }
+    badge.textContent=VERSION;
+  }
+
+  function showScreen(id){
+    if(window.TopolineaV189 && typeof window.TopolineaV189.showScreen==='function'){
+      window.TopolineaV189.showScreen(id);
+      return;
+    }
+    if(window.TopolineaNavigationV177 && typeof window.TopolineaNavigationV177.showScreen==='function'){
+      window.TopolineaNavigationV177.showScreen(id);
+      return;
+    }
+    screens.forEach(name=>$(name)?.classList.toggle('active',name===id));
+    window.scrollTo({top:0,left:0,behavior:'auto'});
+  }
+
+  function clearRoomQuery(){
+    try{
+      const url=new URL(window.location.href);
+      if(url.searchParams.has('room')){
+        url.searchParams.delete('room');
+        const search=url.searchParams.toString();
+        const clean=url.pathname+(search?'?'+search:'')+url.hash;
+        window.history.replaceState({}, document.title, clean);
+      }
+    }catch(e){}
+  }
+
+  function forceLocalVisibility(){
+    document.body.classList.remove('v188-remote-prehost');
+    document.body.classList.add('v188-local-flow');
+    ['localConfigWrap'].forEach(id=>{const el=$(id); if(el) el.style.display='';});
+    document.querySelectorAll('.v83-options-group,.v83-preview-group,.actions').forEach(el=>{el.style.display='';});
+    const remoteCard=$('remoteComingCard');
+    if(remoteCard){
+      remoteCard.classList.remove('active');
+      remoteCard.style.display='none';
+      remoteCard.setAttribute('aria-hidden','true');
+    }
+    const label=$('configModeLabelV179');
+    if(label) label.textContent='Modo local';
+  }
+
+  function leaveRemoteLinkForLocal(){
+    clearRoomQuery();
+    const r=window.TopolineaRemoteV132;
+    if(r){
+      r.role='';
+      r.currentRoomCode='';
+      r.startedApplied=false;
+      r.lastMoveApplied=0;
+    }
+    const joinInput=$('joinRoomCodeV132');
+    if(joinInput) joinInput.value='';
+    const match=$('matchType');
+    if(match) match.value='local';
+    window.__topolineaMatchType='local';
+    try{ window.setTopolineaFlowV132?.('local'); }catch(e){}
+    try{ window.TopolineaV189?.setFlow?.('local'); }catch(e){}
+    forceLocalVisibility();
+  }
+
+  function bindLocalFromSharedLink(){
+    const btn=$('playLocalBtnV177');
+    if(!btn || btn.dataset.v191LocalFix) return;
+    btn.dataset.v191LocalFix='1';
+    btn.addEventListener('click',ev=>{
+      ev.preventDefault();
+      ev.stopImmediatePropagation();
+      leaveRemoteLinkForLocal();
+      showScreen('startScreen');
+      setTimeout(forceLocalVisibility,50);
+      setTimeout(forceLocalVisibility,250);
+    },true);
+  }
+
+  function bindHomeAndBack(){
+    const configHome=$('configHomeBtnV179');
+    if(configHome && !configHome.dataset.v191HomeFix){
+      configHome.dataset.v191HomeFix='1';
+      configHome.addEventListener('click',ev=>{
+        ev.preventDefault();
+        ev.stopImmediatePropagation();
+        showScreen('mainMenuScreen');
+      },true);
+    }
+    const back=$('backBtn');
+    if(back && !back.dataset.v191BackFix){
+      back.dataset.v191BackFix='1';
+      back.textContent='Volver';
+      back.addEventListener('click',ev=>{
+        ev.preventDefault();
+        ev.stopImmediatePropagation();
+        try{ if(typeof stopClock==='function') stopClock(); }catch(e){}
+        showScreen('startScreen');
+      },true);
+    }
+  }
+
+  function init(){
+    removeDiagnostics();
+    bindLocalFromSharedLink();
+    bindHomeAndBack();
+  }
+
+  if(document.readyState==='loading') document.addEventListener('DOMContentLoaded',init); else init();
+  setTimeout(init,300);
+  setTimeout(init,1200);
 })();
 </script>
 
