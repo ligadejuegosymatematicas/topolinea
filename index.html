@@ -14171,5 +14171,174 @@ if(lastRoom){
 })();
 </script>
 
+
+
+<style id="v193-hard-reset-url-local-style">
+  #v190DiagPanel,#v188VisibleMarker,#versionMarkerV191,#versionMarkerV192{display:none!important;visibility:hidden!important;opacity:0!important;}
+  .v193-hidden{display:none!important;}
+</style>
+<script id="v193-hard-reset-url-local-js">
+(function(){
+  'use strict';
+  const VERSION='v193';
+  const $=(id)=>document.getElementById(id);
+  const screens=['mainMenuScreen','playModeScreen','surfaceViewerIntroScreen','startScreen','gameScreen'];
+
+  function badge(){
+    ['v190DiagPanel','v188VisibleMarker','versionMarkerV191','versionMarkerV192'].forEach(id=>$(id)?.remove());
+    let b=$('versionMarkerV193');
+    if(!b){
+      b=document.createElement('div');
+      b.id='versionMarkerV193';
+      b.style.cssText='position:fixed;right:8px;bottom:8px;z-index:99999;background:#111827;color:#facc15;border:1px solid #facc15;border-radius:999px;padding:4px 8px;font:700 11px system-ui;opacity:.75;pointer-events:none';
+      document.body.appendChild(b);
+    }
+    b.textContent=VERSION;
+  }
+
+  function showScreen(id){
+    screens.forEach(name=>$(name)?.classList.toggle('active',name===id));
+    try{window.scrollTo({top:0,left:0,behavior:'auto'});}catch(e){}
+  }
+
+  function cleanRoomUrl(){
+    try{
+      const url=new URL(window.location.href);
+      if(url.searchParams.has('room')){
+        url.searchParams.delete('room');
+        const q=url.searchParams.toString();
+        const clean=url.pathname+(q?'?'+q:'')+url.hash;
+        window.history.replaceState({},document.title,clean);
+      }
+    }catch(e){}
+  }
+
+  function stopRemoteSubscriptions(){
+    const r=window.TopolineaRemoteV132;
+    if(r){
+      try{ if(typeof r.unsubscribeRoom==='function') r.unsubscribeRoom(); }catch(e){}
+      try{ if(typeof r.unsubRoom==='function') r.unsubRoom(); }catch(e){}
+      r.unsubscribeRoom=null;
+      r.unsubRoom=null;
+      r.currentRoomCode='';
+      r.roomCode='';
+      r.role='';
+      r.team='';
+      r.slot='';
+      r.roster={};
+      r.startedApplied=false;
+      r.applyingRemote=false;
+      r.lastMoveApplied=0;
+      r.currentGameId=null;
+      r.lastRoomSnapshot=null;
+    }
+    try{
+      localStorage.removeItem('topolineaLastRoomCode');
+      localStorage.removeItem('topolineaLastRoomRole');
+      localStorage.removeItem('topolineaRemoteRoom');
+    }catch(e){}
+  }
+
+  function forceLocalConfigVisible(){
+    document.body.classList.remove('v188-remote-prehost','surface-mobius-v107','surface-klein-v109');
+    document.body.classList.add('v188-local-flow');
+    const match=$('matchType'); if(match) match.value='local';
+    window.__topolineaMatchType='local';
+    try{ window.setTopolineaFlowV132?.('local'); }catch(e){}
+
+    ['localConfigWrap','surfaceConfigSection'].forEach(id=>{
+      const el=$(id); if(el){ el.style.display=''; el.hidden=false; el.classList.remove('remote-hidden','remote-guest-hidden-v145','remote-guest-hidden-v155','v193-hidden'); }
+    });
+    document.querySelectorAll('.v83-primary-config,.v83-options-group,.v83-preview-group,.v83-options-content,.config-preview-card,.actions,.config-section').forEach(el=>{
+      el.style.display='';
+      el.hidden=false;
+      el.classList.remove('remote-hidden','remote-guest-hidden-v145','remote-guest-hidden-v155','v193-hidden','collapsed');
+    });
+    const remoteCard=$('remoteComingCard');
+    if(remoteCard){
+      remoteCard.classList.remove('active');
+      remoteCard.style.display='none';
+      remoteCard.setAttribute('aria-hidden','true');
+    }
+    const info=$('remoteRoomInfoV132'); if(info) info.hidden=true;
+    const join=$('joinRoomCodeV132'); if(join) join.value='';
+    const link=$('remoteRoomLinkV132'); if(link) link.value='';
+    const status=$('remoteStatusV132');
+    if(status){ status.textContent='Firebase listo para probar conexión.'; status.removeAttribute('data-kind'); }
+    const label=$('configModeLabelV179'); if(label) label.textContent='Modo local';
+  }
+
+  function leaveRemoteAndGoHome(){
+    try{ if(typeof stopClock==='function') stopClock(); }catch(e){}
+    stopRemoteSubscriptions();
+    cleanRoomUrl();
+    forceLocalConfigVisible();
+    showScreen('mainMenuScreen');
+  }
+
+  function chooseLocal(){
+    try{ if(typeof stopClock==='function') stopClock(); }catch(e){}
+    stopRemoteSubscriptions();
+    cleanRoomUrl();
+    forceLocalConfigVisible();
+    showScreen('startScreen');
+    setTimeout(forceLocalConfigVisible,50);
+    setTimeout(forceLocalConfigVisible,300);
+  }
+
+  function gameBackToConfig(){
+    try{ if(typeof stopClock==='function') stopClock(); }catch(e){}
+    showScreen('startScreen');
+    setTimeout(()=>{
+      const mode=window.__topolineaMatchType || $('matchType')?.value || 'local';
+      if(mode==='local') forceLocalConfigVisible();
+    },50);
+  }
+
+  function chooseRemote(){
+    const match=$('matchType'); if(match) match.value='remote';
+    window.__topolineaMatchType='remote';
+    try{ window.setTopolineaFlowV132?.('remote'); }catch(e){}
+    showScreen('startScreen');
+  }
+
+  function replaceButton(id, handler, text){
+    const old=$(id);
+    if(!old || old.dataset.v193Replaced==='1') return;
+    const neo=old.cloneNode(true);
+    neo.dataset.v193Replaced='1';
+    if(text) neo.textContent=text;
+    neo.addEventListener('click',function(ev){
+      ev.preventDefault();
+      ev.stopPropagation();
+      ev.stopImmediatePropagation();
+      handler(ev);
+      return false;
+    },true);
+    old.replaceWith(neo);
+  }
+
+  function patch(){
+    badge();
+    replaceButton('configHomeBtnV179', leaveRemoteAndGoHome, 'Inicio');
+    replaceButton('playLocalBtnV177', chooseLocal);
+    replaceButton('backBtn', gameBackToConfig, 'Volver');
+    replaceButton('playRemoteBtnV177', chooseRemote);
+  }
+
+  function init(){
+    patch();
+    badge();
+    // Si ya estamos en una URL compartida, no se borra de inmediato: permite entrar a la sala.
+    // Se borra solo al pulsar Inicio o Local.
+  }
+
+  if(document.readyState==='loading') document.addEventListener('DOMContentLoaded',init); else init();
+  setTimeout(init,300);
+  setTimeout(init,1200);
+  setTimeout(init,2500);
+})();
+</script>
+
 </body>
 </html>
