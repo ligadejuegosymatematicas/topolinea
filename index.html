@@ -7125,7 +7125,7 @@ body.v183-local-entry #remoteComingCard{
     <button type="button" id="reconnectRoomBtnV141" class="secondary reconnect-room-btn-v141">Volver a la partida</button>
   </div>
 
-  <div id="remoteStatusV132" class="remote-status-v132">Listo para crear o unirse a una sala.</div>
+  <div id="remoteStatusV132" class="remote-status-v132">Listo para crear o unirte a una sala.</div>
 
   <div id="remoteRoomInfoV132" class="remote-room-info-v132" hidden>
     <div><strong>Sala:</strong> <span id="remoteRoomCodeV132">—</span></div>
@@ -13645,9 +13645,9 @@ setReconnectButtonTextV156();
 
 const lastRoom = localStorage.getItem("topolineaLastRoomCode");
 if(lastRoom){
-  setStatus("Firebase conectado. Puedes crear sala, unirte o volver a " + lastRoom + ".");
+  setStatus("Listo para crear o unirte a una sala.");
 }else{
-  setStatus("Firebase conectado. Puedes crear o unirte a una sala.");
+  setStatus("Listo para crear o unirte a una sala.");
 }
 </script>
 
@@ -14048,7 +14048,7 @@ if(lastRoom){
     const link=$('remoteRoomLinkV132');
     if(link) link.value='';
     const status=$('remoteStatusV132');
-    if(status){ status.textContent='Listo para crear o unirse a una sala.'; status.removeAttribute('data-kind'); }
+    if(status){ status.textContent='Listo para crear o unirte a una sala.'; status.removeAttribute('data-kind'); }
     const card=$('remoteComingCard');
     if(card){ card.classList.remove('active'); card.style.display='none'; card.setAttribute('aria-hidden','true'); }
     document.body.classList.remove('v188-remote-prehost');
@@ -14255,7 +14255,7 @@ if(lastRoom){
     const join=$('joinRoomCodeV132'); if(join) join.value='';
     const link=$('remoteRoomLinkV132'); if(link) link.value='';
     const status=$('remoteStatusV132');
-    if(status){ status.textContent='Listo para crear o unirse a una sala.'; status.removeAttribute('data-kind'); }
+    if(status){ status.textContent='Listo para crear o unirte a una sala.'; status.removeAttribute('data-kind'); }
     const label=$('configModeLabelV179'); if(label) label.textContent='Modo local';
   }
 
@@ -14707,7 +14707,7 @@ import { ref, update, serverTimestamp } from "https://www.gstatic.com/firebasejs
     ['remoteRoomLinkV132','joinRoomCodeV132'].forEach(id=>{const el=$(id); if(el) el.value='';});
     ['remoteTeamAListV136','remoteTeamBListV136','remoteUnassignedListV155'].forEach(id=>{const el=$(id); if(el) el.innerHTML='—';});
     const count=$('remoteRoomCountV155'); if(count) count.textContent='0';
-    const status=$('remoteStatusV132'); if(status){ status.textContent='Listo para crear o unirse a una sala.'; status.removeAttribute('data-kind'); }
+    const status=$('remoteStatusV132'); if(status){ status.textContent='Listo para crear o unirte a una sala.'; status.removeAttribute('data-kind'); }
   }
 
   function resetRemoteObject(){
@@ -15179,5 +15179,110 @@ body.v200-remote-config-active #startScreen .config-head p{
   });
 })();
 </script>
+
+
+<style id="v202-safe-remote-return-cleanup-style">
+  #versionMarkerV201,#versionMarkerV200,#versionMarkerV199,#versionMarkerV198,#versionMarkerV197,#versionMarkerV196,#versionMarkerV195,#versionMarkerV194,#versionMarkerV193,#versionMarkerV192,#versionMarkerV191,#v190DiagPanel,#v188VisibleMarker{display:none!important;visibility:hidden!important;opacity:0!important;}
+  #reconnectRoomBtnV141.v202-return-hidden{display:none!important;visibility:hidden!important;}
+  body.v202-no-active-room #remoteGuestInfoV145,
+  body.v202-no-active-room #remoteGuestInfoV155,
+  body.v202-no-active-room #remoteRoleBadgeV155{
+    display:none!important;
+    visibility:hidden!important;
+  }
+</style>
+<script id="v202-safe-remote-return-cleanup-js">
+(function(){
+  'use strict';
+  var VERSION='v202';
+  var canReturn=false;
+  function $(id){ return document.getElementById(id); }
+  function norm(v){ return String(v == null ? '' : v).trim().toUpperCase(); }
+  function codeLike(v){ return /^[A-Z0-9]{4,10}$/.test(norm(v)); }
+  function roomCode(){
+    var r=window.TopolineaRemoteV132 || {};
+    var c=norm(r.currentRoomCode || r.roomCode || r.activeRoomCode || '');
+    if(codeLike(c)) return c;
+    var el=$('remoteRoomCodeV132');
+    if(el && codeLike(el.textContent)) return norm(el.textContent);
+    return '';
+  }
+  function roomStatus(){
+    var r=window.TopolineaRemoteV132 || {};
+    return String((r.lastRoomSnapshot && r.lastRoomSnapshot.status) || ($('remoteRoomStateV132') && $('remoteRoomStateV132').textContent) || '').trim().toLowerCase();
+  }
+  function hasRoom(){
+    var s=roomStatus();
+    return !!roomCode() && s!=='abandoned' && s!=='finalized' && s!=='finished';
+  }
+  function startedRoom(){
+    var r=window.TopolineaRemoteV132 || {};
+    var s=roomStatus();
+    return hasRoom() && (s==='started' || !!r.currentGameId || !!(r.lastRoomSnapshot && r.lastRoomSnapshot.gameId));
+  }
+  function versionBadge(){
+    ['versionMarkerV191','versionMarkerV192','versionMarkerV193','versionMarkerV194','versionMarkerV195','versionMarkerV196','versionMarkerV197','versionMarkerV198','versionMarkerV199','versionMarkerV200','versionMarkerV201','v190DiagPanel','v188VisibleMarker'].forEach(function(id){ var el=$(id); if(el) el.remove(); });
+    var b=$('versionMarkerV202');
+    if(!b){
+      b=document.createElement('div');
+      b.id='versionMarkerV202';
+      b.style.cssText='position:fixed;right:8px;bottom:8px;z-index:99999;background:#111827;color:#facc15;border:1px solid #facc15;border-radius:999px;padding:4px 8px;font:700 11px system-ui;opacity:.75;pointer-events:none';
+      document.body.appendChild(b);
+    }
+    b.textContent=VERSION;
+  }
+  function sanitizeStatus(){
+    var el=$('remoteStatusV132');
+    if(!el) return;
+    var t=String(el.textContent || '');
+    if(/firebase/i.test(t) || t.indexOf('unirse a una sala')>=0){
+      el.textContent='Listo para crear o unirte a una sala.';
+      el.removeAttribute('data-kind');
+    }
+  }
+  function updateGuestInfo(){
+    var ok=hasRoom();
+    document.body.classList.toggle('v202-no-active-room', !ok);
+    if(!ok){
+      ['remoteGuestInfoV145','remoteGuestInfoV155','remoteRoleBadgeV155'].forEach(function(id){
+        var el=$(id); if(!el) return;
+        el.hidden=true; el.style.display='none';
+        if(id!=='remoteRoleBadgeV155') el.textContent='';
+      });
+    }
+  }
+  function updateReturnButton(){
+    var btn=$('reconnectRoomBtnV141');
+    if(!btn) return;
+    var show=!!(canReturn && startedRoom());
+    btn.hidden=!show;
+    btn.classList.toggle('v202-return-hidden', !show);
+    btn.style.display=show ? '' : 'none';
+  }
+  function clearReturn(){ canReturn=false; try{sessionStorage.removeItem('topolineaCanReturnRemoteGameV202');}catch(e){} updateReturnButton(); }
+  function rememberReturn(){ canReturn=startedRoom(); try{ if(canReturn) sessionStorage.setItem('topolineaCanReturnRemoteGameV202','1'); else sessionStorage.removeItem('topolineaCanReturnRemoteGameV202'); }catch(e){} updateReturnButton(); }
+  function tick(){
+    versionBadge(); sanitizeStatus(); updateGuestInfo();
+    try{ canReturn = canReturn || sessionStorage.getItem('topolineaCanReturnRemoteGameV202')==='1'; }catch(e){}
+    if(!hasRoom()) clearReturn(); else updateReturnButton();
+  }
+  function patch(){
+    var back=$('backBtn');
+    if(back && back.dataset.v202SafeReturn!=='1'){
+      back.dataset.v202SafeReturn='1';
+      back.addEventListener('click', function(){ setTimeout(rememberReturn, 50); setTimeout(tick, 200); }, false);
+    }
+    ['configHomeBtnV179','playLocalBtnV177','playRemoteBtnV177','createRoomBtnV132','joinRoomBtnV132','startRemoteRoomBtnV133','joinTeamABtnV136','joinTeamBBtnV136'].forEach(function(id){
+      var el=$(id); if(!el || el.dataset.v202SafeCleanup==='1') return;
+      el.dataset.v202SafeCleanup='1';
+      el.addEventListener('click', function(){ if(id!=='playRemoteBtnV177') clearReturn(); setTimeout(tick,100); setTimeout(tick,700); setTimeout(tick,1500); }, false);
+    });
+  }
+  function init(){ patch(); tick(); setTimeout(tick,150); setTimeout(tick,700); }
+  if(document.readyState==='loading') document.addEventListener('DOMContentLoaded', init); else init();
+  setInterval(function(){ patch(); tick(); }, 1200);
+})();
+</script>
+
 </body>
 </html>
