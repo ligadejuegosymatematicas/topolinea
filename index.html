@@ -3907,6 +3907,70 @@ aside.card > .legend-box:not(.legend-bottom-v43){
   padding-right:10px !important;
 }
 
+
+  /* ===== v217: escaneo asistido con detección más conservadora ===== */
+  .v215-scan-card{
+    margin-top:10px;
+    padding:10px;
+    border-radius:18px;
+    background:rgba(15,23,42,.62);
+    border:1px solid rgba(34,211,238,.22);
+  }
+  .v215-scan-card[hidden]{display:none!important;}
+  .v215-scan-head{
+    display:flex;justify-content:space-between;align-items:center;gap:10px;margin-bottom:6px;
+  }
+  .v215-scan-head strong{color:#f8fafc;}
+  .v215-scan-head span{
+    color:#facc15;font-weight:950;font-size:.82rem;padding:4px 9px;border-radius:999px;
+    background:rgba(250,204,21,.10);border:1px solid rgba(250,204,21,.20);
+  }
+  .v215-scan-help{
+    margin:0 0 9px;color:#94a3b8;font-size:.82rem;line-height:1.28;font-weight:800;
+  }
+  .v215-scan-canvas-wrap{
+    width:100%;max-height:340px;overflow:auto;border-radius:16px;
+    background:#020617;border:1px solid rgba(148,163,184,.22);display:grid;place-items:center;
+  }
+  #v215ScanCanvas{
+    width:100%;height:auto;max-height:340px;display:block;touch-action:none;cursor:crosshair;
+    border-radius:14px;background:#020617;
+  }
+
+  #v215ScanCanvas{
+    touch-action:none;
+    cursor:crosshair;
+  }
+  .v215-scan-actions{
+    display:grid;grid-template-columns:1fr 1fr;gap:8px;margin-top:9px;
+  }
+  .v215-scan-actions button{min-height:36px;border-radius:13px;padding:7px 10px;font-size:.84rem;}
+  .v215-scan-msg{
+    margin-top:8px;padding:8px 10px;border-radius:13px;background:rgba(2,6,23,.55);
+    border:1px solid rgba(148,163,184,.16);color:#cbd5e1;font-size:.82rem;font-weight:850;line-height:1.3;
+  }
+  .v215-scan-msg.ok{border-color:rgba(34,197,94,.28);color:#bbf7d0;}
+  .v215-scan-msg.warn{border-color:rgba(250,204,21,.30);color:#fde68a;}
+
+  /* v217: resumen y control de detección */
+  .v217-detect-summary{
+    margin-top:8px;
+    padding:9px 11px;
+    border-radius:13px;
+    background:rgba(2,6,23,.58);
+    border:1px solid rgba(148,163,184,.18);
+    color:#cbd5e1;
+    font-size:.82rem;
+    font-weight:850;
+    line-height:1.32;
+  }
+  .v217-detect-summary[hidden]{display:none!important;}
+  .v217-detect-summary strong{color:#f8fafc;}
+  .v217-detect-summary .warn{color:#fde68a;}
+  .v217-undo-btn{display:none;}
+  .v217-undo-btn.visible{display:inline-block;}
+  @media(max-width:760px){.v215-scan-actions{grid-template-columns:1fr;}}
+
 </style>
 
 <style id="v74-local-remoto-style">
@@ -5829,6 +5893,92 @@ body.viewer-open #gameScreen .board-limit{
 
 </style>
 
+<style id="v220-detection-refine-style">
+/* v220: el escaneo sigue siendo experimental; quitamos el botón Deshacer porque confundía.
+   La corrección manual directa es más simple para el usuario. */
+#v217UndoDetectionBtn{display:none!important;}
+.v220-scan-note{
+  margin-top:8px;
+  color:#cbd5e1;
+  font-size:.82rem;
+  font-weight:800;
+  line-height:1.3;
+}
+</style>
+
+
+<style id="v222-surface-viewer-cleanup-style">
+/* ===== v222: visualizador más limpio ===== */
+#surfaceViewerIntroScreen .v177-lead{
+  max-width:680px;
+  margin-top:6px;
+  margin-bottom:0;
+  line-height:1.35;
+}
+
+.v212-photo-card{
+  padding:14px !important;
+}
+
+.v212-photo-head{
+  align-items:center !important;
+}
+
+.v212-photo-head p{
+  max-width:620px;
+}
+
+.v212-photo-drop{
+  border-style:solid !important;
+  border-color:rgba(34,211,238,.48) !important;
+  background:
+    linear-gradient(135deg, rgba(34,211,238,.16), rgba(236,72,153,.10)),
+    rgba(15,23,42,.78) !important;
+  box-shadow:0 10px 24px rgba(0,0,0,.18), 0 0 18px rgba(34,211,238,.08);
+}
+
+.v212-photo-drop:hover{
+  border-color:rgba(250,204,21,.50) !important;
+}
+
+.v212-photo-drop strong{
+  font-size:1rem;
+}
+
+.v212-photo-preview,
+.v213-photo-controls,
+.v213-photo-underlay{
+  display:none !important;
+}
+
+.v215-scan-card{
+  margin-top:12px !important;
+}
+
+.v215-scan-help{
+  margin-bottom:8px !important;
+}
+
+.v215-scan-msg{
+  margin-top:8px !important;
+}
+
+#v217DetectSummary{
+  display:none !important;
+}
+
+.v206-editor-top strong::after{
+  content:" manual";
+  color:#94a3b8;
+  font-size:.82rem;
+  font-weight:850;
+  margin-left:5px;
+}
+
+.v206-surface-select-panel h3{
+  margin-top:0;
+}
+</style>
 
 <style id="v100-remove-logo-ellipses-style">
 /* v100: eliminar elipses/órbitas decorativas detrás del logo, sin tocar la escena inferior */
@@ -6993,6 +7143,25 @@ body.v183-local-entry #remoteComingCard{
 }
 </style>
 
+
+<style id="v218-detect-button-fix-style">
+/* v219: bilinear + botón Detectar fichas siempre clickeable y con estado claro */
+#v215DetectBtn{
+  position:relative !important;
+  z-index:5 !important;
+  pointer-events:auto !important;
+}
+#v215DetectBtn.v218-ready{
+  border:1px solid rgba(34,197,94,.48) !important;
+  background:linear-gradient(90deg, rgba(34,197,94,.92), rgba(20,184,166,.86)) !important;
+  color:#052e16 !important;
+  box-shadow:0 0 18px rgba(34,197,94,.18) !important;
+}
+.v215-scan-actions{
+  position:relative !important;
+  z-index:6 !important;
+}
+</style>
 </head>
 <body data-v191="1">
   <div id="versionMarkerV191" style="position:fixed;right:8px;bottom:8px;z-index:99999;background:#111827;color:#facc15;border:1px solid #facc15;border-radius:999px;padding:4px 8px;font:700 11px system-ui;opacity:.75;pointer-events:none">v191</div>
@@ -7051,7 +7220,7 @@ body.v183-local-entry #remoteComingCard{
         <div class="v206-surface-head">
           <div>
             <h2 class="v177-title">Visualizar superficies</h2>
-            <p class="v177-lead">Construye o escanea una posición y observa cómo cambia sobre distintas superficies topológicas.<br><span style="opacity:.82">En construcción.</span></p>
+            <p class="v177-lead">Construye una posición o escanea un tablero físico y visualízalo sobre distintas superficies.</p>
           </div>
           <button type="button" id="surfacesBackBtnV177" class="secondary v177-back">Volver al menú</button>
         </div>
@@ -7059,14 +7228,43 @@ body.v183-local-entry #remoteComingCard{
         <div class="v206-compact-settings">
           <div class="v206-entry-toggle" aria-label="Tipo de entrada">
             <button type="button" class="active" data-entry="manual">Construir manualmente</button>
-            <button type="button" class="disabled" disabled data-entry="scan">Escanear tablero <span>próximamente</span></button>
+            <button type="button" data-entry="photo" id="v212PhotoModeBtn">Escanear foto <span>asistido</span></button>
           </div>
           <label>Tamaño <input id="v206SizeInput" type="number" min="5" max="15" value="10"></label>
         </div>
 
+        <div class="v212-photo-card" id="v212PhotoCard" hidden>
+          <div class="v212-photo-head">
+            <div>
+              <strong>Escanear tablero físico</strong>
+            </div>
+            <button type="button" id="v212RemovePhotoBtn" class="secondary" hidden>Quitar foto</button>
+          </div>
+          <label class="v212-photo-drop" for="v212PhotoInput" id="v212PhotoDrop">
+            <input id="v212PhotoInput" type="file" accept="image/*" capture="environment">
+            <span class="v212-photo-icon">📷</span>
+            <span><strong>Cargar foto del tablero</strong></span>
+          </label>
+<div class="v215-scan-card" id="v215ScanCard" hidden>
+            <div class="v215-scan-head">
+              <strong>Escaneo asistido</strong>
+              <span id="v215CornerCount">0/4 esquinas</span>
+            </div>
+            <p class="v215-scan-help">Marca las cuatro esquinas del tablero.</p>
+            <div class="v215-scan-canvas-wrap">
+              <canvas id="v215ScanCanvas" width="640" height="480" aria-label="Marcador de esquinas del tablero"></canvas>
+            </div>
+            <div class="v215-scan-actions">
+              <button type="button" id="v215ResetCornersBtn" class="secondary">Reiniciar esquinas</button>
+              <button type="button" id="v215DetectBtn">Detectar fichas</button>
+            </div>
+            <div id="v215ScanMsg" class="v215-scan-msg">Carga una foto y marca las 4 esquinas del tablero.</div>
+          </div>
+</div>
+
         <div class="v206-editor-card">
           <div class="v206-editor-top">
-            <strong>Editor libre de posición</strong>
+            <strong>Construir posición</strong>
             <span id="v206EditorSummary">0 Cyan · 0 Magenta</span>
           </div>
           <div class="v206-tools v207-tools-inline" id="v206Tools">
@@ -7074,13 +7272,13 @@ body.v183-local-entry #remoteComingCard{
             <button type="button" data-tool="B"><span class="v206-dot magenta"></span>Magenta</button>
             <button type="button" data-tool=".">Vacía</button>
           </div>
-          <div class="v206-board-wrap">
-            <div id="v206Board" class="v206-board" aria-label="Editor manual de tablero"></div>
+          <div class="v206-board-wrap" id="v206BoardWrap">
+<div id="v206Board" class="v206-board" aria-label="Editor manual de tablero"></div>
           </div>
         </div>
 
         <div class="v206-panel v206-surface-select-panel v207-surface-below">
-          <h3>Superficie a visualizar</h3>
+          <h3>Visualizar superficie</h3>
           <div class="v206-surface-buttons" id="v206SurfaceButtons">
             <button type="button" class="active" data-surface="plane"><span>▭</span> Plano</button>
             <button type="button" data-surface="cylH"><span>◖◗</span> Cilindro I-D</button>
@@ -7093,7 +7291,7 @@ body.v183-local-entry #remoteComingCard{
 
         <div class="v209-viewer-actions">
           <button type="button" id="v206ConfirmBtn">Visualizar en 3D</button>
-          <div id="v206ConfirmMsg" class="v206-confirm-msg">Elige Cyan, Magenta o Vacía, toca las casillas y selecciona una superficie.</div>
+          <div id="v206ConfirmMsg" class="v206-confirm-msg">Construye una posición o escanea un tablero físico y visualízalo sobre distintas superficies.</div>
           <button type="button" id="v206ClearBtn" class="secondary">Limpiar tablero</button>
         </div>
       </div>
@@ -14158,6 +14356,9 @@ if(lastRoom){
   }
 
   function bind(){
+    v217EnsureEnhancements();
+    if(v216DidBind) return;
+    v216DidBind=true;
     // Inicio desde configuración: sale de cualquier sala y limpia ?room=...
     bindOnce('configHomeBtnV179','v192Home',()=>{ leaveRemoteSessionLocalOnly(); showScreen('mainMenuScreen'); });
 
@@ -14880,6 +15081,7 @@ import { ref, update, serverTimestamp } from "https://www.gstatic.com/firebasejs
 
   function init(){
     versionBadge();
+    v217EnsureEnhancements();
     const back=$('backBtn'); if(back) back.textContent='Volver';
   }
 
@@ -15048,6 +15250,7 @@ import { ref, update, serverTimestamp } from "https://www.gstatic.com/firebasejs
 
   function init(){
     versionBadge();
+    v217EnsureEnhancements();
     allowUserToggle();
     closeAfterNavigation();
     forceOptionsClosed();
@@ -15182,6 +15385,7 @@ import { ref, update, serverTimestamp } from "https://www.gstatic.com/firebasejs
 
   function init(){
     versionBadge();
+    v217EnsureEnhancements();
     observeRemotePanel();
     patchRemoteButtons();
     applyRemoteEmptyCleanup();
@@ -16001,15 +16205,137 @@ body.v200-remote-config-active #startScreen .config-head p{
     .v206-surface-buttons{grid-template-columns:1fr 1fr !important;}
   }
 
+
+  /* ===== v212: carga de foto como referencia, sin detección automática ===== */
+  .v212-photo-card{
+    margin:9px 0;
+    padding:11px;
+    border-radius:20px;
+    background:rgba(2,6,23,.62);
+    border:1px solid rgba(148,163,184,.20);
+  }
+  .v212-photo-card[hidden]{display:none!important;}
+  .v212-photo-head{
+    display:flex;
+    justify-content:space-between;
+    align-items:flex-start;
+    gap:10px;
+    margin-bottom:9px;
+  }
+  .v212-photo-head strong{color:#f8fafc;font-size:1rem;}
+  .v212-photo-head p{margin:3px 0 0;color:#94a3b8;font-size:.84rem;line-height:1.28;font-weight:750;}
+  .v212-photo-head button{min-height:34px;border-radius:13px;padding:6px 10px;font-size:.82rem;}
+  .v212-photo-drop{
+    display:grid;
+    grid-template-columns:auto 1fr;
+    gap:10px;
+    align-items:center;
+    min-height:58px;
+    padding:10px 12px;
+    border-radius:16px;
+    border:1px dashed rgba(34,211,238,.42);
+    background:rgba(15,23,42,.66);
+    cursor:pointer;
+  }
+  .v212-photo-drop input{display:none;}
+  .v212-photo-icon{font-size:1.45rem;}
+  .v212-photo-drop strong{color:#e5e7eb;}
+  .v212-photo-drop small{color:#94a3b8;font-weight:800;}
+  .v212-photo-preview{
+    margin-top:10px;
+    border-radius:16px;
+    overflow:hidden;
+    border:1px solid rgba(148,163,184,.22);
+    background:rgba(15,23,42,.72);
+    max-height:260px;
+    display:grid;
+    place-items:center;
+  }
+  .v212-photo-preview[hidden]{display:none!important;}
+  .v212-photo-preview img{
+    display:block;
+    max-width:100%;
+    max-height:260px;
+    object-fit:contain;
+  }
+  #v212PhotoModeBtn.active{
+    border-color:rgba(250,204,21,.50)!important;
+    box-shadow:0 0 18px rgba(250,204,21,.10)!important;
+  }
+  @media(max-width:760px){
+    .v212-photo-head{display:grid;}
+    .v212-photo-drop{grid-template-columns:1fr;text-align:center;}
+  }
+
+
+  /* ===== v214: foto bajo editor + zoom/desplazamiento para encuadre ===== */
+  .v206-board-wrap{
+    position:relative !important;
+    overflow:auto !important;
+  }
+  .v213-photo-underlay{
+    display:none;
+    position:absolute;
+    left:50%;
+    top:50%;
+    max-width:none;
+    max-height:none;
+    width:var(--v214-photo-width,100%);
+    height:auto;
+    object-fit:contain;
+    transform:translate(calc(-50% + var(--v214-photo-x,0px)), calc(-50% + var(--v214-photo-y,0px))) scale(var(--v213-photo-zoom,1));
+    opacity:var(--v213-photo-opacity,.35);
+    pointer-events:none;
+    z-index:0;
+    border-radius:12px;
+    filter:saturate(1.05) contrast(1.02);
+  }
+  .v206-board-wrap.v213-photo-visible .v213-photo-underlay{display:block;}
+  .v206-board{position:relative;z-index:1;}
+  .v206-board-wrap.v213-photo-visible .v206-cell:not(.blocked){
+    background:
+      radial-gradient(circle at center, rgba(2,6,23,.86) 0 2px, transparent 2.4px),
+      linear-gradient(to right, rgba(15,23,42,.24) 1px, transparent 1px),
+      linear-gradient(to bottom, rgba(15,23,42,.24) 1px, transparent 1px),
+      rgba(246,239,228,.66) !important;
+    backdrop-filter:blur(.2px);
+  }
+  .v213-photo-controls{
+    margin-top:10px;
+    padding:10px;
+    border-radius:16px;
+    background:rgba(15,23,42,.64);
+    border:1px solid rgba(148,163,184,.18);
+    display:grid;
+    grid-template-columns:auto 1fr 1fr 1fr 1fr auto;
+    gap:10px;
+    align-items:center;
+  }
+  .v213-photo-controls[hidden]{display:none!important;}
+  .v213-photo-controls button{min-height:34px;border-radius:13px;padding:6px 10px;font-size:.82rem;}
+  .v213-photo-controls label{display:grid;gap:4px;color:#cbd5e1;font-size:.82rem;font-weight:850;}
+  .v213-photo-controls input[type=range]{padding:0;accent-color:#22d3ee;}
+  @media(max-width:760px){
+    .v213-photo-controls{grid-template-columns:1fr;}
+  }
+
 </style>
-<script id="v206-surface-viewer-start-js">
+<script id="v214-surface-viewer-start-js">
 (function(){
   'use strict';
-  const VERSION='v209';
+  const VERSION='v222';
   const $=id=>document.getElementById(id);
   const letters='ABCDEFGHIJKLMNOPQRSTUVWXYZ'.split('');
   let n=10, k=6, tool='A', surface='plane';
   let board=[];
+  let photoObjectUrl=null;
+  let photoVisible=true;
+  let v215PhotoImg=null;
+  let v215Corners=[];
+  let v216DidBind=false;
+  let v216LastCornerAt=0;
+  let v217BeforeDetection=null;
+  let v217LastDetection=null;
 
   function versionBadge(){
     ['versionMarkerV207','versionMarkerV206','versionMarkerV205','versionMarkerV204','versionMarkerV203','versionMarkerV202','versionMarkerV201','versionMarkerV200','versionMarkerV199','versionMarkerV198','versionMarkerV197','versionMarkerV196','versionMarkerV195','versionMarkerV194','versionMarkerV193','versionMarkerV192','versionMarkerV191','v190DiagPanel','v188VisibleMarker'].forEach(id=>$(id)?.remove());
@@ -16039,6 +16365,25 @@ body.v200-remote-config-active #startScreen .config-head p{
     board.forEach(row=>row.forEach(v=>{if(v==='A')A++; else if(v==='B')B++; else if(v==='X')X++;}));
     return {A,B,X};
   }
+  const EMPTY_MSG='Construye una posición o escanea un tablero físico y visualízalo sobre distintas superficies.';
+  const EDIT_MSG='Visualiza la posición sobre distintas superficies o continúa editándola.';
+  function hasPosition(){
+    const ct=counts();
+    return (ct.A + ct.B + ct.X) > 0;
+  }
+  function updateEditorStateMessage(){
+    const active=hasPosition();
+    const msg=$('v206ConfirmMsg');
+    if(msg){
+      msg.classList.remove('ok');
+      msg.textContent=active ? EDIT_MSG : EMPTY_MSG;
+    }
+    const clear=$('v206ClearBtn');
+    if(clear){
+      clear.hidden=!active;
+      clear.style.display=active ? '' : 'none';
+    }
+  }
   function render(){
     const el=$('v206Board'); if(!el) return;
     ensureBoard();
@@ -16057,6 +16402,7 @@ body.v200-remote-config-active #startScreen .config-head p{
     const ct=counts();
     const sum=$('v206EditorSummary');
     if(sum) sum.textContent=`${ct.A} Cyan · ${ct.B} Magenta`;
+    updateEditorStateMessage();
   }
   function setTool(next){
     tool=next;
@@ -16097,15 +16443,317 @@ body.v200-remote-config-active #startScreen .config-head p{
     s.clockOn=false;
     return true;
   }
+
+  function setEntryMode(mode){
+    const photoMode = mode === 'photo';
+    document.querySelectorAll('.v206-entry-toggle [data-entry]').forEach(b=>b.classList.toggle('active', b.dataset.entry===mode));
+    const card=$('v212PhotoCard');
+    if(card) card.hidden=!photoMode;
+  }
+  function v215SetScanMsg(text,kind){
+    const msg=$('v215ScanMsg');
+    if(!msg) return;
+    msg.classList.remove('ok','warn');
+    if(kind) msg.classList.add(kind);
+    msg.textContent=text;
+  }
+  function v218UpdateDetectButton(){
+    const btn=$('v215DetectBtn');
+    if(!btn) return;
+    // No lo dejamos disabled: si falta alguna esquina, el propio handler muestra el aviso.
+    btn.disabled=false;
+    btn.removeAttribute('disabled');
+    btn.style.pointerEvents='auto';
+    btn.classList.toggle('v218-ready', v215Corners.length===4);
+    btn.setAttribute('aria-disabled','false');
+  }
+  function v215UpdateCornerCount(){
+    const el=$('v215CornerCount');
+    if(el) el.textContent=`${v215Corners.length}/4 esquinas`;
+    v218UpdateDetectButton();
+  }
+  function v215DrawScanCanvas(){
+    const canvas=$('v215ScanCanvas');
+    if(!canvas) return;
+    const ctx=canvas.getContext('2d');
+    ctx.clearRect(0,0,canvas.width,canvas.height);
+    if(!v215PhotoImg){
+      ctx.fillStyle='#020617'; ctx.fillRect(0,0,canvas.width,canvas.height);
+      ctx.fillStyle='#94a3b8'; ctx.font='18px system-ui'; ctx.textAlign='center';
+      ctx.fillText('Carga una foto para marcar las esquinas',canvas.width/2,canvas.height/2);
+      return;
+    }
+    const iw=v215PhotoImg.naturalWidth, ih=v215PhotoImg.naturalHeight;
+    const maxW=760, maxH=520;
+    const scale=Math.min(maxW/iw,maxH/ih,1);
+    canvas.width=Math.max(1,Math.round(iw*scale));
+    canvas.height=Math.max(1,Math.round(ih*scale));
+    ctx.drawImage(v215PhotoImg,0,0,canvas.width,canvas.height);
+    if(v215Corners.length){
+      ctx.lineWidth=3;
+      ctx.strokeStyle='rgba(250,204,21,.95)';
+      ctx.fillStyle='rgba(250,204,21,.20)';
+      ctx.beginPath();
+      v215Corners.forEach((p,i)=>{ const x=p.x*canvas.width, y=p.y*canvas.height; if(i===0) ctx.moveTo(x,y); else ctx.lineTo(x,y); });
+      if(v215Corners.length===4) ctx.closePath();
+      ctx.stroke();
+      v215Corners.forEach((p,i)=>{
+        const x=p.x*canvas.width, y=p.y*canvas.height;
+        ctx.beginPath(); ctx.arc(x,y,10,0,Math.PI*2); ctx.fill(); ctx.stroke();
+        ctx.fillStyle='#020617'; ctx.font='bold 13px system-ui'; ctx.textAlign='center'; ctx.textBaseline='middle'; ctx.fillText(String(i+1),x,y);
+        ctx.fillStyle='rgba(250,204,21,.20)';
+      });
+    }
+    v215UpdateCornerCount();
+  }
+  function v215ResetCorners(){
+    v215Corners=[];
+    v215DrawScanCanvas();
+    v215SetScanMsg('Marca las 4 esquinas del tablero en la foto.','');
+    v217UpdateSummary(null);
+  }
+  function v215RegisterCorner(ev){
+    if(!v215PhotoImg) return;
+    // v216: evita dobles registros por combinación click/touch o por listeners duplicados.
+    const now=Date.now();
+    if(now - v216LastCornerAt < 260) return;
+    v216LastCornerAt=now;
+    if(ev && typeof ev.preventDefault==='function') ev.preventDefault();
+    const canvas=$('v215ScanCanvas'); if(!canvas) return;
+    const rect=canvas.getBoundingClientRect();
+    const point = ev.changedTouches?.[0] || ev.touches?.[0] || ev;
+    const clientX=point.clientX;
+    const clientY=point.clientY;
+    if(!Number.isFinite(clientX) || !Number.isFinite(clientY)) return;
+    const x=(clientX-rect.left)/rect.width;
+    const y=(clientY-rect.top)/rect.height;
+    if(x<0||x>1||y<0||y>1) return;
+    if(v215Corners.length>=4) v215Corners=[];
+    v215Corners.push({x,y});
+    v215DrawScanCanvas();
+    if(v215Corners.length===4){ v218UpdateDetectButton(); v215SetScanMsg('Esquinas listas. Botón Detectar fichas activo.','ok'); }
+    else v215SetScanMsg(`Esquina ${v215Corners.length} marcada. Faltan ${4-v215Corners.length}.`,'');
+  }
+  function v215RgbToHsv(r,g,b){
+    r/=255; g/=255; b/=255;
+    const max=Math.max(r,g,b), min=Math.min(r,g,b), d=max-min;
+    let h=0;
+    if(d!==0){
+      if(max===r) h=60*(((g-b)/d)%6);
+      else if(max===g) h=60*(((b-r)/d)+2);
+      else h=60*(((r-g)/d)+4);
+    }
+    if(h<0) h+=360;
+    return {h,s:max===0?0:d/max,v:max};
+  }
+  function v217PixelVote(r,g,b){
+    const {h,s,v}=v215RgbToHsv(r,g,b);
+    if(v < 0.14 || s < 0.16) return '.';
+
+    // Puntajes por oposición cromática. Son más estables que usar solo un rango de tono.
+    const cyanScore = ((g + b) / 2 - r) / 255;
+    const magScore  = ((r + b) / 2 - g) / 255;
+
+    const cyanHue = h >= 150 && h <= 225;
+    const magHue  = (h >= 285 && h <= 360) || (h >= 0 && h <= 25);
+
+    if(cyanHue && cyanScore > 0.08 && s > 0.20 && v > 0.20) return 'A';
+    if(magHue && magScore > 0.08 && s > 0.20 && v > 0.20) return 'B';
+
+    // Respaldo: algunos celulares cambian bastante el hue, pero conservan dominancia.
+    if(cyanScore > 0.15 && g > r * 1.08 && b > r * 1.08) return 'A';
+    if(magScore > 0.15 && r > g * 1.10 && b > g * 0.92) return 'B';
+    return '.';
+  }
+
+  function v220OrderedCorners(){
+    if(!Array.isArray(v215Corners) || v215Corners.length !== 4) return null;
+    // Permite marcar las esquinas en cualquier orden.
+    // Orden resultante: superior izquierda, superior derecha, inferior derecha, inferior izquierda.
+    const pts=v215Corners.map(p=>({x:p.x,y:p.y}));
+    pts.sort((a,b)=>a.y-b.y);
+    const top=pts.slice(0,2).sort((a,b)=>a.x-b.x);
+    const bottom=pts.slice(2,4).sort((a,b)=>a.x-b.x);
+    return [top[0], top[1], bottom[1], bottom[0]];
+  }
+
+  function v219Clamp01(t){ return Math.max(0, Math.min(1, t)); }
+  function v215Bilinear(u,v){
+    const ordered=v220OrderedCorners();
+    if(!ordered) return {x:0,y:0};
+    u=v219Clamp01(u); v=v219Clamp01(v);
+    const [p00,p10,p11,p01]=ordered;
+    const x=(1-u)*(1-v)*p00.x + u*(1-v)*p10.x + u*v*p11.x + (1-u)*v*p01.x;
+    const y=(1-u)*(1-v)*p00.y + u*(1-v)*p10.y + u*v*p11.y + (1-u)*v*p01.y;
+    return {x,y};
+  }
+
+  function v217CellGeometry(r,c,workW,workH){
+    const center=v215Bilinear((c+.5)/n,(r+.5)/n);
+    const left=v215Bilinear((c+.10)/n,(r+.5)/n);
+    const right=v215Bilinear((c+.90)/n,(r+.5)/n);
+    const top=v215Bilinear((c+.5)/n,(r+.10)/n);
+    const bottom=v215Bilinear((c+.5)/n,(r+.90)/n);
+    const cx=center.x*workW, cy=center.y*workH;
+    const wx=Math.hypot((right.x-left.x)*workW,(right.y-left.y)*workH);
+    const hy=Math.hypot((bottom.x-top.x)*workW,(bottom.y-top.y)*workH);
+    // Área algo más grande que v217: reduce falsos negativos si la ficha no cae exactamente al centro.
+    return {cx,cy,radius:Math.max(5,Math.min(wx,hy)*0.34)};
+  }
+
+  function v220ClassifyAverage(sr,sg,sb,used){
+    if(!used) return '.';
+    return v217PixelVote(sr/used, sg/used, sb/used);
+  }
+
+  function v217ClassifyCell(img,workW,workH,r,c){
+    const {cx,cy,radius}=v217CellGeometry(r,c,workW,workH);
+    let votesA=0,votesB=0,total=0;
+    let sr=0,sg=0,sb=0,used=0;
+    const step=Math.max(1,Math.floor(radius/6));
+    for(let dy=-radius;dy<=radius;dy+=step){
+      for(let dx=-radius;dx<=radius;dx+=step){
+        const d2=dx*dx+dy*dy;
+        if(d2>radius*radius) continue;
+        // Evitamos el anillo exterior: suele contener líneas de grilla o sombras.
+        if(d2>radius*radius*0.82) continue;
+        const weight = d2 < radius*radius*0.38 ? 3 : 1;
+        const xx=Math.max(0,Math.min(workW-1,Math.round(cx+dx)));
+        const yy=Math.max(0,Math.min(workH-1,Math.round(cy+dy)));
+        const idx=(yy*workW+xx)*4;
+        const R=img[idx], G=img[idx+1], B=img[idx+2];
+        const hsv=v215RgbToHsv(R,G,B);
+        // Ignorar puntos negros de grilla y blancos/beige del tablero.
+        if(hsv.v < 0.15 || hsv.s < 0.14) continue;
+        const vote=v217PixelVote(R,G,B);
+        total+=weight;
+        if(vote==='A') votesA+=weight;
+        if(vote==='B') votesB+=weight;
+        if(vote!=='.' || (hsv.s>0.20 && hsv.v>0.20)){ sr+=R; sg+=G; sb+=B; used++; }
+      }
+    }
+    if(total < 3) return {cls:'.',confidence:0,reason:'low'};
+    const avg=v220ClassifyAverage(sr,sg,sb,used);
+    const best=Math.max(votesA,votesB);
+    const second=Math.min(votesA,votesB);
+    const share=best/total;
+    const margin=(best-second)/total;
+    let cls=votesA>votesB?'A':(votesB>votesA?'B':'.');
+
+    // Reglas menos agresivas que v217, pero aún evitando falsos positivos obvios.
+    if(avg!=='.' && (share>0.07 || best>=3)) cls=avg;
+    if(cls==='.') return {cls:'.',confidence:0,reason:'low'};
+    if(best < 3 && avg==='.') return {cls:'.',confidence:share,reason:'low'};
+    if(share < 0.075 && avg==='.') return {cls:'.',confidence:share,reason:'low'};
+    if(votesA>0 && votesB>0 && margin < 0.035 && avg==='.') return {cls:'.',confidence:share,reason:'conflict'};
+    return {cls,confidence:Math.min(.99,share+margin),reason:'ok'};
+  }
+
+  function v217EnsureEnhancements(){
+    // v220: eliminar/desactivar Deshacer detección. La acción más clara es corregir manualmente
+    // o volver a detectar; un botón extra confundía sin aportar mucho.
+    const oldUndo=$('v217UndoDetectionBtn');
+    if(oldUndo) oldUndo.remove();
+    const msg=$('v215ScanMsg');
+    if(msg && !$('v217DetectSummary')){
+      const div=document.createElement('div');
+      div.id='v217DetectSummary';
+      div.className='v217-detect-summary';
+      div.hidden=true;
+      msg.insertAdjacentElement('afterend',div);
+    }
+  }
+
+  function v217UpdateSummary(report){
+    // v222: se evita un segundo bloque de resumen para no duplicar mensajes.
+    const div=$('v217DetectSummary');
+    if(div){ div.hidden=true; div.innerHTML=''; }
+  }
+
+  function v215DetectPieces(){
+    v217EnsureEnhancements();
+    if(!v215PhotoImg){ v215SetScanMsg('Primero carga una foto.','warn'); return; }
+    if(v215Corners.length!==4){ v215SetScanMsg('Marca exactamente 4 esquinas antes de detectar.','warn'); return; }
+    const work=document.createElement('canvas');
+    work.width=v215PhotoImg.naturalWidth; work.height=v215PhotoImg.naturalHeight;
+    const ctx=work.getContext('2d',{willReadFrequently:true});
+    ctx.drawImage(v215PhotoImg,0,0,work.width,work.height);
+    const img=ctx.getImageData(0,0,work.width,work.height).data;
+    const next=Array.from({length:n},()=>Array(n).fill('.'));
+    let A=0,B=0,doubt=0;
+    for(let r=0;r<n;r++){
+      for(let c=0;c<n;c++){
+        const res=v217ClassifyCell(img,work.width,work.height,r,c);
+        next[r][c]=res.cls;
+        if(res.cls==='A') A++; else if(res.cls==='B') B++;
+        if(res.cls==='.' && res.reason!=='low') doubt++;
+      }
+    }
+    v217BeforeDetection=board.map(row=>row.slice());
+    board=next;
+    render();
+    v215DrawScanCanvas();
+    const report={A,B,doubt};
+    v217LastDetection=report;
+    v217UpdateSummary(report);
+    const kind=(A+B)>0?'ok':'warn';
+    v215SetScanMsg(`Detectadas: ${A} Cyan · ${B} Magenta · ${n*n-A-B} vacías.`,kind);
+    updateEditorStateMessage();
+  }
+
+  function updatePhotoControls(){
+    // v222: ya no se muestra la foto bajo el editor ni hay controles de encuadre.
+    const wrap=$('v206BoardWrap');
+    const controls=$('v213PhotoControls');
+    const underlay=$('v213PhotoUnderlay');
+    if(controls) controls.hidden=true;
+    if(wrap) wrap.classList.remove('v213-photo-visible');
+    if(underlay) underlay.removeAttribute('src');
+  }
+  function handlePhotoFile(file){
+    if(!file || !file.type || !file.type.startsWith('image/')) return;
+    if(photoObjectUrl) URL.revokeObjectURL(photoObjectUrl);
+    photoObjectUrl=URL.createObjectURL(file);
+    photoVisible=false;
+    const remove=$('v212RemovePhotoBtn');
+    if(remove) remove.hidden=false;
+    const scan=$('v215ScanCard');
+    if(scan) scan.hidden=false;
+    v215PhotoImg=new Image();
+    v215PhotoImg.onload=()=>{ v215ResetCorners(); v215DrawScanCanvas(); };
+    v215PhotoImg.src=photoObjectUrl;
+    updatePhotoControls();
+    updateEditorStateMessage();
+  }
+  function clearPhoto(){
+    if(photoObjectUrl){ URL.revokeObjectURL(photoObjectUrl); photoObjectUrl=null; }
+    photoVisible=true;
+    const input=$('v212PhotoInput');
+    const remove=$('v212RemovePhotoBtn');
+    if(input) input.value='';
+    if(remove) remove.hidden=true;
+    const scan=$('v215ScanCard');
+    if(scan) scan.hidden=true;
+    v215PhotoImg=null;
+    v215Corners=[];
+    v215DrawScanCanvas();
+    v217UpdateSummary(null);
+    updatePhotoControls();
+    updateEditorStateMessage();
+  }
+
   function confirmPosition(){
     const ct=counts();
     const msg=$('v206ConfirmMsg');
     const ok=syncToMainState();
     if(msg){
-      msg.classList.toggle('ok',ok);
-      msg.textContent= ok
-        ? `${surfaceLabel(surface)} · tablero ${n}×${n} · ${ct.A} Cyan · ${ct.B} Magenta.`
-        : 'No se pudo abrir el visor 3D desde este estado.';
+      if(ok){
+        msg.classList.remove('ok');
+        msg.textContent=hasPosition() ? EDIT_MSG : EMPTY_MSG;
+      }else{
+        msg.classList.remove('ok');
+        msg.textContent='No se pudo abrir el visor 3D desde este estado.';
+      }
     }
     if(ok){
       try{
@@ -16120,23 +16768,74 @@ body.v200-remote-config-active #startScreen .config-head p{
     }
   }
   function bind(){
+    v217EnsureEnhancements();
+    if(v216DidBind) return;
+    v216DidBind=true;
     $('v206Board')?.addEventListener('click',e=>{
       const cell=e.target.closest('.v206-cell'); if(!cell) return;
       const r=+cell.dataset.r, c=+cell.dataset.c;
       board[r][c]=tool;
-      const msg=$('v206ConfirmMsg'); if(msg){msg.classList.remove('ok'); msg.textContent='Posición modificada. Puedes seguir editando o confirmar nuevamente.';}
       render();
     });
     $('v206Tools')?.addEventListener('click',e=>{const b=e.target.closest('[data-tool]'); if(b) setTool(b.dataset.tool);});
+    document.querySelector('.v206-entry-toggle')?.addEventListener('click',e=>{const b=e.target.closest('[data-entry]'); if(b && !b.disabled) setEntryMode(b.dataset.entry);});
+    $('v212PhotoInput')?.addEventListener('change',e=>handlePhotoFile(e.target.files && e.target.files[0]));
+    $('v212RemovePhotoBtn')?.addEventListener('click',clearPhoto);
+    $('v213TogglePhotoBtn')?.addEventListener('click',()=>{ photoVisible=!photoVisible; updatePhotoControls(); });
+    $('v213PhotoOpacity')?.addEventListener('input',updatePhotoControls);
+    $('v213PhotoZoom')?.addEventListener('input',updatePhotoControls);
+    $('v214PhotoX')?.addEventListener('input',updatePhotoControls);
+    $('v214PhotoY')?.addEventListener('input',updatePhotoControls);
+    $('v214ResetPhotoFitBtn')?.addEventListener('click',()=>{
+      if($('v213PhotoZoom')) $('v213PhotoZoom').value='100';
+      if($('v214PhotoX')) $('v214PhotoX').value='0';
+      if($('v214PhotoY')) $('v214PhotoY').value='0';
+      updatePhotoControls();
+    });
+    const scanCanvas=$('v215ScanCanvas');
+    if(scanCanvas){
+      if(window.PointerEvent){
+        scanCanvas.addEventListener('pointerup',v215RegisterCorner);
+      }else{
+        scanCanvas.addEventListener('touchend',v215RegisterCorner,{passive:false});
+        scanCanvas.addEventListener('click',v215RegisterCorner);
+      }
+    }
+    $('v215ResetCornersBtn')?.addEventListener('click',v215ResetCorners);
+    const detectBtn=$('v215DetectBtn');
+    if(detectBtn && !detectBtn.dataset.v218Bound){
+      detectBtn.dataset.v218Bound='1';
+      const runDetect=(ev)=>{
+        if(ev){ ev.preventDefault(); ev.stopImmediatePropagation(); }
+        try{
+          v215DetectPieces();
+        }catch(err){
+          console.error('[v219] Error al detectar fichas', err);
+          v215SetScanMsg('Error interno al detectar fichas: ' + (err && err.message ? err.message : err), 'warn');
+        }
+      };
+      detectBtn.addEventListener('click',runDetect,true);
+      detectBtn.addEventListener('pointerup',runDetect,true);
+      detectBtn.addEventListener('touchend',runDetect,{passive:false,capture:true});
+    }
+    v218UpdateDetectButton();
     $('v206SurfaceButtons')?.addEventListener('click',e=>{const b=e.target.closest('[data-surface]'); if(b) setSurface(b.dataset.surface);});
     $('v206SizeInput')?.addEventListener('change',applySize);
-    $('v206ClearBtn')?.addEventListener('click',()=>{resetBoard(); const msg=$('v206ConfirmMsg'); if(msg){msg.classList.remove('ok'); msg.textContent='Tablero limpio.';} render();});
+    $('v206ClearBtn')?.addEventListener('click',()=>{
+      if(!hasPosition()) return;
+      resetBoard();
+      render();
+    });
     $('v206ConfirmBtn')?.addEventListener('click',confirmPosition);
   }
   function init(){
     versionBadge();
+    v217EnsureEnhancements();
     if(!board.length) resetBoard();
     bind();
+    setEntryMode(document.querySelector('.v206-entry-toggle [data-entry].active')?.dataset.entry || 'manual');
+    updatePhotoControls();
+    v215DrawScanCanvas();
     render();
   }
   if(document.readyState==='loading') document.addEventListener('DOMContentLoaded',init); else init();
