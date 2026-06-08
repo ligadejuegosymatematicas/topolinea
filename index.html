@@ -15181,8 +15181,8 @@ body.v200-remote-config-active #startScreen .config-head p{
 </script>
 
 
-<style id="v202-safe-remote-return-cleanup-style">
-  #versionMarkerV201,#versionMarkerV200,#versionMarkerV199,#versionMarkerV198,#versionMarkerV197,#versionMarkerV196,#versionMarkerV195,#versionMarkerV194,#versionMarkerV193,#versionMarkerV192,#versionMarkerV191,#v190DiagPanel,#v188VisibleMarker{display:none!important;visibility:hidden!important;opacity:0!important;}
+<style id="v203-remote-return-button-fix-style">
+  #versionMarkerV202,#versionMarkerV201,#versionMarkerV200,#versionMarkerV199,#versionMarkerV198,#versionMarkerV197,#versionMarkerV196,#versionMarkerV195,#versionMarkerV194,#versionMarkerV193,#versionMarkerV192,#versionMarkerV191,#v190DiagPanel,#v188VisibleMarker{display:none!important;visibility:hidden!important;opacity:0!important;}
   #reconnectRoomBtnV141.v202-return-hidden{display:none!important;visibility:hidden!important;}
   body.v202-no-active-room #remoteGuestInfoV145,
   body.v202-no-active-room #remoteGuestInfoV155,
@@ -15191,10 +15191,10 @@ body.v200-remote-config-active #startScreen .config-head p{
     visibility:hidden!important;
   }
 </style>
-<script id="v202-safe-remote-return-cleanup-js">
+<script id="v203-remote-return-button-fix-js">
 (function(){
   'use strict';
-  var VERSION='v202';
+  var VERSION='v203';
   var canReturn=false;
   function $(id){ return document.getElementById(id); }
   function norm(v){ return String(v == null ? '' : v).trim().toUpperCase(); }
@@ -15220,12 +15220,19 @@ body.v200-remote-config-active #startScreen .config-head p{
     var s=roomStatus();
     return hasRoom() && (s==='started' || !!r.currentGameId || !!(r.lastRoomSnapshot && r.lastRoomSnapshot.gameId));
   }
+  function isInRemoteGameScreen(){
+    var game=$('gameScreen');
+    var match=$('matchType');
+    var isGameVisible=!!(game && game.classList && game.classList.contains('active'));
+    var isRemote=!!(match && String(match.value).toLowerCase()==='remote');
+    return isGameVisible && isRemote && hasRoom();
+  }
   function versionBadge(){
     ['versionMarkerV191','versionMarkerV192','versionMarkerV193','versionMarkerV194','versionMarkerV195','versionMarkerV196','versionMarkerV197','versionMarkerV198','versionMarkerV199','versionMarkerV200','versionMarkerV201','v190DiagPanel','v188VisibleMarker'].forEach(function(id){ var el=$(id); if(el) el.remove(); });
-    var b=$('versionMarkerV202');
+    var b=$('versionMarkerV203');
     if(!b){
       b=document.createElement('div');
-      b.id='versionMarkerV202';
+      b.id='versionMarkerV203';
       b.style.cssText='position:fixed;right:8px;bottom:8px;z-index:99999;background:#111827;color:#facc15;border:1px solid #facc15;border-radius:999px;padding:4px 8px;font:700 11px system-ui;opacity:.75;pointer-events:none';
       document.body.appendChild(b);
     }
@@ -15254,23 +15261,28 @@ body.v200-remote-config-active #startScreen .config-head p{
   function updateReturnButton(){
     var btn=$('reconnectRoomBtnV141');
     if(!btn) return;
-    var show=!!(canReturn && startedRoom());
+    var show=!!(canReturn && hasRoom());
     btn.hidden=!show;
     btn.classList.toggle('v202-return-hidden', !show);
     btn.style.display=show ? '' : 'none';
   }
-  function clearReturn(){ canReturn=false; try{sessionStorage.removeItem('topolineaCanReturnRemoteGameV202');}catch(e){} updateReturnButton(); }
-  function rememberReturn(){ canReturn=startedRoom(); try{ if(canReturn) sessionStorage.setItem('topolineaCanReturnRemoteGameV202','1'); else sessionStorage.removeItem('topolineaCanReturnRemoteGameV202'); }catch(e){} updateReturnButton(); }
+  function clearReturn(){ canReturn=false; try{sessionStorage.removeItem('topolineaCanReturnRemoteGameV202'); sessionStorage.removeItem('topolineaCanReturnRemoteGameV203');}catch(e){} updateReturnButton(); }
+  function rememberReturn(){
+    // Se activa exclusivamente al salir desde la pantalla de partida remota con el botón Volver.
+    canReturn=!!(isInRemoteGameScreen() || startedRoom());
+    try{ if(canReturn) sessionStorage.setItem('topolineaCanReturnRemoteGameV203','1'); else sessionStorage.removeItem('topolineaCanReturnRemoteGameV203'); }catch(e){}
+    updateReturnButton();
+  }
   function tick(){
     versionBadge(); sanitizeStatus(); updateGuestInfo();
-    try{ canReturn = canReturn || sessionStorage.getItem('topolineaCanReturnRemoteGameV202')==='1'; }catch(e){}
+    try{ canReturn = canReturn || sessionStorage.getItem('topolineaCanReturnRemoteGameV203')==='1'; }catch(e){}
     if(!hasRoom()) clearReturn(); else updateReturnButton();
   }
   function patch(){
     var back=$('backBtn');
     if(back && back.dataset.v202SafeReturn!=='1'){
       back.dataset.v202SafeReturn='1';
-      back.addEventListener('click', function(){ setTimeout(rememberReturn, 50); setTimeout(tick, 200); }, false);
+      back.addEventListener('click', function(){ rememberReturn(); setTimeout(tick, 80); setTimeout(tick, 250); }, true);
     }
     ['configHomeBtnV179','playLocalBtnV177','playRemoteBtnV177','createRoomBtnV132','joinRoomBtnV132','startRemoteRoomBtnV133','joinTeamABtnV136','joinTeamBBtnV136'].forEach(function(id){
       var el=$(id); if(!el || el.dataset.v202SafeCleanup==='1') return;
