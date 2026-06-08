@@ -7418,7 +7418,7 @@ body.v183-local-entry #remoteComingCard{
 </head>
 <body data-v191="1">
   <div id="versionMarkerV191" style="position:fixed;right:8px;bottom:8px;z-index:99999;background:#111827;color:#facc15;border:1px solid #facc15;border-radius:999px;padding:4px 8px;font:700 11px system-ui;opacity:.75;pointer-events:none">v191</div>
-  <div id="buildVersionMarkerV194" style="display:none">topolinea-v229-surface-viewer-max-lines-home-compact</div>
+  <div id="buildVersionMarkerV194" style="display:none">topolinea-v231-solitario-config-fix</div>
   <section id="mainMenuScreen" class="screen active">
     <div class="v177-shell">
       <div class="v177-card">
@@ -7443,7 +7443,7 @@ body.v183-local-entry #remoteComingCard{
     <div class="v177-shell">
       <div class="v177-card">
         <h2 class="v177-title">Jugar</h2>
-        <p class="v177-lead">Selecciona un modo de juego.</p>
+        <p class="v177-lead">Elige cómo quieres jugar.</p>
         <div class="v177-actions">
           <button type="button" id="playLocalBtnV177" class="v177-big-btn">
             <strong>🕹️ Local</strong>
@@ -7455,9 +7455,9 @@ body.v183-local-entry #remoteComingCard{
           </button>
         </div>
         <div class="v177-actions" style="grid-template-columns:1fr;margin-top:12px;">
-          <button type="button" class="v177-big-btn v177-disabled" disabled>
-            <strong>Entrenamiento</strong>
-            <span>En construcción.</span>
+          <button type="button" id="playSoloBtnV230" class="v177-big-btn">
+            <strong>🤖 Solitario</strong>
+            <span>vs CPU</span>
           </button>
         </div>
         <div class="v177-secondary-row">
@@ -14796,7 +14796,7 @@ if(lastRoom){
     ['localConfigWrap','surfaceConfigSection'].forEach(id=>{
       const el=$(id); if(el){ el.style.display=''; el.hidden=false; el.classList.remove('remote-hidden','remote-guest-hidden-v145','remote-guest-hidden-v155','v193-hidden'); }
     });
-    document.querySelectorAll('.v83-primary-config,.v83-options-group,.v83-preview-group,.v83-options-content,.config-preview-card,.actions,.config-section').forEach(el=>{
+    document.querySelectorAll('.v83-primary-config,.v83-options-group,.v83-preview-group,.config-preview-card,.actions,.config-section').forEach(el=>{
       el.style.display='';
       el.hidden=false;
       el.classList.remove('remote-hidden','remote-guest-hidden-v145','remote-guest-hidden-v155','v193-hidden','collapsed');
@@ -15014,7 +15014,7 @@ import { ref, update, serverTimestamp } from "https://www.gstatic.com/firebasejs
     ['localConfigWrap','surfaceConfigSection'].forEach(id=>{
       const el=$(id); if(el){ el.style.display=''; el.hidden=false; el.classList.remove('remote-hidden','remote-guest-hidden-v145','remote-guest-hidden-v155','v193-hidden'); }
     });
-    document.querySelectorAll('.v83-primary-config,.v83-options-group,.v83-preview-group,.v83-options-content,.config-preview-card,.actions,.config-section').forEach(el=>{
+    document.querySelectorAll('.v83-primary-config,.v83-options-group,.v83-preview-group,.config-preview-card,.actions,.config-section').forEach(el=>{
       el.style.display=''; el.hidden=false;
       el.classList.remove('remote-hidden','remote-guest-hidden-v145','remote-guest-hidden-v155','v193-hidden','collapsed');
     });
@@ -15248,7 +15248,7 @@ import { ref, update, serverTimestamp } from "https://www.gstatic.com/firebasejs
     ['localConfigWrap','surfaceConfigSection'].forEach(id=>{
       const el=$(id); if(el){ el.style.display=''; el.hidden=false; el.classList.remove('remote-hidden','remote-guest-hidden-v145','remote-guest-hidden-v155','v193-hidden'); }
     });
-    document.querySelectorAll('.v83-primary-config,.v83-options-group,.v83-preview-group,.v83-options-content,.config-preview-card,.actions,.config-section').forEach(el=>{
+    document.querySelectorAll('.v83-primary-config,.v83-options-group,.v83-preview-group,.config-preview-card,.actions,.config-section').forEach(el=>{
       el.style.display=''; el.hidden=false;
       el.classList.remove('remote-hidden','remote-guest-hidden-v145','remote-guest-hidden-v155','v193-hidden','collapsed');
     });
@@ -17287,6 +17287,845 @@ body.v200-remote-config-active #startScreen .config-head p{
   if(document.readyState==='loading') document.addEventListener('DOMContentLoaded',init); else init();
   setTimeout(init,700);
   setInterval(versionBadge,1500);
+})();
+</script>
+
+
+
+<style id="v230-solitario-cpu-style">
+/* ===== v230: Solitario vs CPU básico ===== */
+body.v230-solo-flow #remoteComingCard{display:none !important;}
+body.v230-solo-flow #chooseRemote{display:none !important;}
+body.v230-solo-flow #chooseLocal{display:none !important;}
+body.v230-solo-flow #playFlowCard .section-title::after{
+  content:" · Solitario vs CPU";
+  color:#facc15;
+}
+.v230-cpu-note{
+  margin-top:10px;
+  padding:10px 12px;
+  border-radius:15px;
+  color:#cbd5e1;
+  background:rgba(2,6,23,.58);
+  border:1px solid rgba(250,204,21,.22);
+  font-weight:850;
+  line-height:1.25;
+}
+.v230-cpu-thinking{
+  color:#fde68a !important;
+  border-color:rgba(250,204,21,.34) !important;
+}
+#playSoloBtnV230{
+  border-color:rgba(250,204,21,.42) !important;
+  background:
+    radial-gradient(circle at top left, rgba(250,204,21,.14), transparent 44%),
+    radial-gradient(circle at bottom right, rgba(34,211,238,.10), transparent 42%),
+    rgba(15,23,42,.78) !important;
+}
+</style>
+<script id="v230-solitario-cpu-js">
+(function(){
+  'use strict';
+  const VERSION='v230';
+  const $ = (id)=>document.getElementById(id);
+  let soloEnabled = false;
+  let cpuThinking = false;
+  let cpuTimer = null;
+  let originalPlay = null;
+  let originalApplyMoveLocal = null;
+  let originalStartGame = null;
+  let originalResetGame = null;
+  let originalCurrentActor = null;
+  let originalRenderStatus = null;
+
+  function setVersion(){
+    ['versionMarkerV191','versionMarkerV196','versionMarkerV195','versionMarkerV194','versionMarkerV193','versionMarkerV192'].forEach(id=>$(id)?.remove());
+    let b=$('versionMarkerV230');
+    if(!b){
+      b=document.createElement('div');
+      b.id='versionMarkerV230';
+      b.textContent='v230';
+      b.style.cssText='position:fixed;right:8px;bottom:8px;z-index:99999;background:#111827;color:#facc15;border:1px solid #facc15;border-radius:999px;padding:4px 8px;font:700 11px system-ui;opacity:.75;pointer-events:none';
+      document.body.appendChild(b);
+    }
+    const build=$('buildVersionMarkerV194');
+    if(build) build.textContent='topolinea-v231-solitario-config-fix';
+  }
+
+  function showScreen(id){
+    if(window.TopolineaNavigationV177?.showScreen){ window.TopolineaNavigationV177.showScreen(id); return; }
+    document.querySelectorAll('.screen').forEach(x=>x.classList.remove('active'));
+    $(id)?.classList.add('active');
+    window.scrollTo({top:0,left:0,behavior:'auto'});
+  }
+
+  function setSoloFlow(on){
+    soloEnabled = !!on;
+    window.TopolineaSoloV230 = window.TopolineaSoloV230 || {};
+    window.TopolineaSoloV230.enabled = soloEnabled;
+    document.body.classList.toggle('v230-solo-flow', soloEnabled);
+    const match=$('matchType');
+    if(match) match.value = soloEnabled ? 'solo' : (match.value==='solo' ? 'local' : match.value);
+    window.__topolineaMatchType = soloEnabled ? 'solo' : (window.__topolineaMatchType==='solo' ? 'local' : window.__topolineaMatchType);
+    const players=$('playersMode');
+    if(players) players.value='1v1';
+    document.querySelectorAll('[data-select="playersMode"]').forEach(btn=>btn.classList.toggle('active', btn.dataset.value==='1v1'));
+    const label=$('configModeLabelV179');
+    if(label) label.textContent = soloEnabled ? 'Modo solitario · vs CPU' : (match?.value==='remote' ? 'Modo remoto' : 'Modo local');
+    ensureCpuNote();
+  }
+
+  function ensureCpuNote(){
+    const card=$('playFlowCard');
+    if(!card) return;
+    let note=$('v230CpuNote');
+    if(!note){
+      note=document.createElement('div');
+      note.id='v230CpuNote';
+      note.className='v230-cpu-note';
+      note.textContent='Solitario: juegas con Cyan. La CPU juega con Magenta y responde automáticamente.';
+      card.appendChild(note);
+    }
+    note.hidden = !soloEnabled;
+  }
+
+  function isSolo(){ return !!(soloEnabled || window.TopolineaSoloV230?.enabled || $('matchType')?.value==='solo' || window.__topolineaMatchType==='solo'); }
+  function isCpuTurn(){ return isSolo() && window.state && !state.gameOver && typeof currentActor==='function' && currentActor().team==='B'; }
+
+  function freeCells(){
+    const out=[];
+    if(!window.state || !state.board?.length) return out;
+    for(let r=0;r<state.rows;r++) for(let c=0;c<state.cols;c++){
+      if(!state.board[r][c] && !state.blocked.has(key(r,c))) out.push([r,c]);
+    }
+    return out;
+  }
+
+  function wouldWin(r,c,team){
+    if(state.board[r][c] || state.blocked.has(key(r,c))) return false;
+    const old=state.board[r][c];
+    state.board[r][c]=team;
+    let win=null;
+    try{ win = checkWin(r,c); }catch(e){ win=null; }
+    state.board[r][c]=old;
+    return !!(win && win.length>=state.k);
+  }
+
+  function linePotentialScore(r,c,team){
+    // Heurística liviana: favorece centro, cercanía a fichas propias y líneas largas posibles.
+    const centerR=(state.rows-1)/2, centerC=(state.cols-1)/2;
+    const maxD=Math.max(1, Math.hypot(centerR,centerC));
+    let score = 4*(1 - Math.hypot(r-centerR,c-centerC)/maxD);
+    const dirs=[[1,0],[0,1],[1,1],[1,-1]];
+    const opponent = team==='A' ? 'B' : 'A';
+    for(const [dr,dc] of dirs){
+      let own=1, empty=0, blocked=0, opp=0;
+      for(const sign of [1,-1]){
+        let cr=r, cc=c, cdr=dr*sign, cdc=dc*sign;
+        for(let step=1; step<state.k; step++){
+          const nxt = typeof normalizeStep==='function' ? normalizeStep(cr,cc,cdr,cdc) : null;
+          if(!nxt){ blocked++; break; }
+          const kk=key(nxt.r,nxt.c);
+          if(state.blocked.has(kk)){ blocked++; break; }
+          const v=state.board[nxt.r][nxt.c];
+          if(v===team) own++;
+          else if(v===opponent){ opp++; break; }
+          else empty++;
+          cr=nxt.r; cc=nxt.c; cdr=nxt.dr; cdc=nxt.dc;
+        }
+      }
+      if(opp===0 && blocked<2) score += own*own + empty*0.15;
+      if(own>=state.k-1 && opp===0) score += 20;
+    }
+    return score + Math.random()*0.25;
+  }
+
+  function chooseCpuMove(){
+    const cells=freeCells();
+    if(!cells.length) return null;
+    // 1. Ganar inmediatamente.
+    for(const [r,c] of cells){ if(wouldWin(r,c,'B')) return [r,c]; }
+    // 2. Bloquear victoria inmediata de Cyan.
+    for(const [r,c] of cells){ if(wouldWin(r,c,'A')) return [r,c]; }
+    // 3. Jugar una casilla razonable.
+    let best=cells[0], bestScore=-Infinity;
+    for(const [r,c] of cells){
+      const s=linePotentialScore(r,c,'B') + 0.65*linePotentialScore(r,c,'A');
+      if(s>bestScore){ bestScore=s; best=[r,c]; }
+    }
+    return best;
+  }
+
+  function updateCpuThinkingUI(on){
+    const banner=$('turnBanner');
+    if(banner) banner.classList.toggle('v230-cpu-thinking', !!on);
+    const note=$('v230CpuNote');
+    if(note && isSolo()) note.textContent = on ? 'CPU pensando…' : 'Solitario: juegas con Cyan. La CPU juega con Magenta y responde automáticamente.';
+  }
+
+  function scheduleCpu(){
+    if(!isCpuTurn() || cpuThinking) return;
+    cpuThinking=true;
+    updateCpuThinkingUI(true);
+    clearTimeout(cpuTimer);
+    cpuTimer=setTimeout(()=>{
+      try{
+        let guard=0;
+        while(isCpuTurn() && guard<3){
+          const mv=chooseCpuMove();
+          if(!mv) break;
+          originalApplyMoveLocal(mv[0],mv[1]);
+          guard++;
+        }
+      }catch(e){ console.error('[v230 CPU]', e); }
+      cpuThinking=false;
+      updateCpuThinkingUI(false);
+      try{ if(typeof render==='function') render(); }catch(e){}
+    }, 420 + Math.floor(Math.random()*320));
+  }
+
+  function wrapCore(){
+    if(!originalPlay && typeof window.play==='function') originalPlay=window.play;
+    if(!originalApplyMoveLocal && typeof window.applyMoveLocal==='function') originalApplyMoveLocal=window.applyMoveLocal;
+    if(!originalStartGame && typeof window.startGame==='function') originalStartGame=window.startGame;
+    if(!originalResetGame && typeof window.resetGame==='function') originalResetGame=window.resetGame;
+    if(!originalCurrentActor && typeof currentActor==='function') originalCurrentActor=currentActor;
+    if(!originalRenderStatus && typeof renderStatus==='function') originalRenderStatus=renderStatus;
+    if(!originalPlay || !originalApplyMoveLocal || !originalStartGame) return false;
+
+    const newPlay=function(r,c){
+      if(isSolo() && cpuThinking) return false;
+      if(isCpuTurn()) return false;
+      const ok=originalPlay(r,c);
+      setTimeout(scheduleCpu,80);
+      return ok;
+    };
+    try{ window.play=newPlay; play=newPlay; }catch(e){ window.play=newPlay; }
+
+    const newApply=function(r,c,meta){
+      const ok=originalApplyMoveLocal(r,c,meta);
+      if(ok && isSolo()) setTimeout(scheduleCpu,90);
+      return ok;
+    };
+    try{ window.applyMoveLocal=newApply; applyMoveLocal=newApply; }catch(e){ window.applyMoveLocal=newApply; }
+
+    const newStart=function(){
+      if(isSolo()){
+        const match=$('matchType'); if(match) match.value='solo';
+        const players=$('playersMode'); if(players) players.value='1v1';
+        window.__topolineaMatchType='solo';
+      }
+      const out=originalStartGame();
+      setTimeout(scheduleCpu,120);
+      return out;
+    };
+    try{ window.startGame=newStart; startGame=newStart; }catch(e){ window.startGame=newStart; }
+
+    if(originalResetGame){
+      const newReset=function(){ const out=originalResetGame(); setTimeout(scheduleCpu,120); return out; };
+      try{ window.resetGame=newReset; resetGame=newReset; }catch(e){ window.resetGame=newReset; }
+    }
+
+    if(originalCurrentActor){
+      const newActor=function(){
+        const a=originalCurrentActor();
+        if(isSolo()){
+          if(a.team==='A') return {...a, name:'Tú · Cyan'};
+          if(a.team==='B') return {...a, name:'CPU · Magenta'};
+        }
+        return a;
+      };
+      try{ window.currentActor=newActor; currentActor=newActor; }catch(e){ window.currentActor=newActor; }
+    }
+
+    if(originalRenderStatus){
+      const newRenderStatus=function(){
+        originalRenderStatus();
+        if(!isSolo()) return;
+        const el=$('status');
+        if(!el || !window.state) return;
+        const actor=currentActor();
+        let html=`Superficie: <strong>${surfaceName()}</strong><br>`;
+        html+=`Tipo: <strong>Solitario vs CPU</strong><br>`;
+        html+=`Regla: <strong>1,2,2,2,… por equipos</strong><br>`;
+        if(state.gameOver){
+          if(state.winner) html+=`<strong>${state.winner==='A'?'Gana Cyan':'Gana CPU · Magenta'}</strong>.`;
+          else html+=`<strong>Empate</strong>.`;
+        }else{
+          html+=`Turno: <strong>${actor.name}</strong>.`;
+        }
+        el.innerHTML=html;
+      };
+      try{ window.renderStatus=newRenderStatus; renderStatus=newRenderStatus; }catch(e){ window.renderStatus=newRenderStatus; }
+    }
+    return true;
+  }
+
+  function wire(){
+    // v232+: version badge is owned by the latest patch, not by v230.
+    const soloBtn=$('playSoloBtnV230');
+    if(soloBtn && !soloBtn.dataset.v230Bound){
+      soloBtn.dataset.v230Bound='1';
+      soloBtn.addEventListener('click', function(ev){
+        ev.preventDefault(); ev.stopPropagation(); ev.stopImmediatePropagation();
+        setSoloFlow(true);
+        showScreen('startScreen');
+      }, true);
+    }
+    // Al entrar a Local/Remoto se apaga Solitario.
+    ['playLocalBtnV177','playRemoteBtnV177','mainPlayBtnV177','playBackBtnV177'].forEach(id=>{
+      const el=$(id); if(el && !el.dataset.v230SoloReset){
+        el.dataset.v230SoloReset='1';
+        if(id==='playLocalBtnV177') el.addEventListener('click',()=>setTimeout(()=>setSoloFlow(false),30),true);
+        if(id==='playRemoteBtnV177') el.addEventListener('click',()=>setTimeout(()=>setSoloFlow(false),30),true);
+      }
+    });
+    wrapCore();
+    ensureCpuNote();
+  }
+
+  window.TopolineaSoloV230 = {
+    get enabled(){return soloEnabled;},
+    set enabled(v){setSoloFlow(!!v);},
+    setSoloFlow,
+    scheduleCpu,
+    chooseCpuMove
+  };
+
+  if(document.readyState==='loading') document.addEventListener('DOMContentLoaded',wire); else wire();
+  setTimeout(wire,300); setTimeout(wire,1200); setInterval(()=>{ if(isSolo()) scheduleCpu();},1200);
+})();
+</script>
+
+
+<style id="v231-solitario-config-fix-style">
+/* ===== v231: Solitario abre configuración completa ===== */
+body.v231-solo-config #configModeLabelV179{
+  color:#facc15;
+  font-weight:1000;
+}
+body.v231-solo-config #startBtn{
+  background:linear-gradient(90deg,#facc15,#f59e0b) !important;
+  color:#111827 !important;
+  box-shadow:0 12px 30px rgba(250,204,21,.18) !important;
+}
+body.v231-solo-config #playFlowCard{
+  border-color:rgba(250,204,21,.28) !important;
+  background:
+    radial-gradient(circle at top left, rgba(250,204,21,.12), transparent 42%),
+    radial-gradient(circle at bottom right, rgba(34,211,238,.08), transparent 42%),
+    rgba(2,6,23,.78) !important;
+}
+.v231-solo-config-note{
+  margin-top:10px;
+  padding:10px 12px;
+  border-radius:15px;
+  background:rgba(250,204,21,.10);
+  border:1px solid rgba(250,204,21,.24);
+  color:#fde68a;
+  font-weight:900;
+  line-height:1.25;
+}
+</style>
+<script id="v231-solitario-config-fix-js">
+(function(){
+  'use strict';
+  const VERSION='v231';
+  const screens=['mainMenuScreen','playModeScreen','surfaceViewerIntroScreen','startScreen','gameScreen'];
+  const $=(id)=>document.getElementById(id);
+
+  function badge(){
+    ['versionMarkerV191','versionMarkerV192','versionMarkerV193','versionMarkerV194','versionMarkerV195','versionMarkerV196','versionMarkerV230'].forEach(id=>$(id)?.remove());
+    let b=$('versionMarkerV231');
+    if(!b){
+      b=document.createElement('div');
+      b.id='versionMarkerV231';
+      b.style.cssText='position:fixed;right:8px;bottom:8px;z-index:99999;background:#111827;color:#facc15;border:1px solid #facc15;border-radius:999px;padding:4px 8px;font:700 11px system-ui;opacity:.75;pointer-events:none';
+      document.body.appendChild(b);
+    }
+    b.textContent=VERSION;
+    const build=$('buildVersionMarkerV194');
+    if(build) build.textContent='topolinea-v231-solitario-config-fix';
+  }
+
+  function showScreen(id){
+    try{
+      if(window.TopolineaNavigationV177?.showScreen){
+        window.TopolineaNavigationV177.showScreen(id);
+      }else{
+        screens.forEach(name=>$(name)?.classList.toggle('active',name===id));
+      }
+      window.scrollTo({top:0,left:0,behavior:'auto'});
+    }catch(e){
+      screens.forEach(name=>$(name)?.classList.toggle('active',name===id));
+    }
+  }
+
+  function clearRemoteVisuals(){
+    const remote=$('remoteComingCard');
+    if(remote){
+      remote.classList.remove('active');
+      remote.style.display='none';
+      remote.setAttribute('aria-hidden','true');
+    }
+    const info=$('remoteRoomInfoV132'); if(info) info.hidden=true;
+  }
+
+  function forceSoloConfig(){
+    document.body.classList.add('v230-solo-flow','v231-solo-config','v188-local-flow');
+    document.body.classList.remove('v188-remote-prehost');
+
+    const match=$('matchType');
+    if(match) match.value='solo';
+    window.__topolineaMatchType='solo';
+
+    const players=$('playersMode');
+    if(players) players.value='1v1';
+    document.querySelectorAll('[data-select="playersMode"]').forEach(btn=>{
+      btn.classList.toggle('active', btn.dataset.value==='1v1');
+    });
+
+    // Mostrar configuración local completa: tablero, superficie y opciones habituales.
+    ['localConfigWrap','surfaceConfigSection'].forEach(id=>{
+      const el=$(id);
+      if(el){
+        el.hidden=false;
+        el.style.display='';
+        el.classList.remove('remote-hidden','remote-guest-hidden-v145','remote-guest-hidden-v155','v193-hidden');
+      }
+    });
+    document.querySelectorAll('.v83-primary-config,.v83-options-group,.v83-preview-group,.config-preview-card,.actions,.config-section').forEach(el=>{
+      el.hidden=false;
+      el.style.display='';
+      el.classList.remove('remote-hidden','remote-guest-hidden-v145','remote-guest-hidden-v155','v193-hidden');
+    });
+
+    // v232: en Solitario las opciones avanzadas deben quedar minimizadas por defecto.
+    const opt=$('v83OptionsContent');
+    const tog=$('v83OptionsToggle');
+    if(opt){
+      opt.hidden=false;
+      opt.style.display='';
+      opt.classList.add('collapsed');
+    }
+    if(tog){
+      tog.classList.remove('expanded');
+      tog.setAttribute('aria-expanded','false');
+    }
+
+    clearRemoteVisuals();
+
+    const label=$('configModeLabelV179');
+    if(label) label.textContent='Modo solitario · vs CPU';
+
+    const start=$('startBtn');
+    if(start) start.textContent='Iniciar solitario';
+
+    let note=$('v231SoloConfigNote');
+    const card=$('playFlowCard');
+    if(card && !note){
+      note=document.createElement('div');
+      note.id='v231SoloConfigNote';
+      note.className='v231-solo-config-note';
+      note.textContent='Solitario: juegas con Cyan. La CPU juega con Magenta. Puedes configurar tablero, superficie y opciones antes de iniciar.';
+      card.appendChild(note);
+    }
+    if(note) note.hidden=false;
+
+    if(window.TopolineaSoloV230){
+      try{ window.TopolineaSoloV230.enabled=true; }catch(e){}
+    }
+  }
+
+  function leaveSoloVisual(){
+    if(window.__topolineaMatchType==='solo') return;
+    document.body.classList.remove('v230-solo-flow','v231-solo-config');
+    const start=$('startBtn');
+    if(start && start.textContent==='Iniciar solitario') start.textContent='Iniciar partida';
+    const note=$('v231SoloConfigNote'); if(note) note.hidden=true;
+  }
+
+  function chooseSolo(ev){
+    ev?.preventDefault?.();
+    ev?.stopPropagation?.();
+    ev?.stopImmediatePropagation?.();
+    try{ if(typeof stopClock==='function') stopClock(); }catch(e){}
+    forceSoloConfig();
+    showScreen('startScreen');
+    setTimeout(forceSoloConfig,60);
+    setTimeout(forceSoloConfig,350);
+    setTimeout(forceSoloConfig,1000);
+    return false;
+  }
+
+  function patchSoloButton(){
+    const btn=$('playSoloBtnV230');
+    if(btn){
+      btn.onclick=chooseSolo;
+      btn.dataset.v231Bound='1';
+    }
+  }
+
+  // Captura global: resistente a botones reemplazados por scripts previos.
+  document.addEventListener('click',function(ev){
+    const t=ev.target?.closest?.('#playSoloBtnV230');
+    if(!t) return;
+    chooseSolo(ev);
+  },true);
+
+  // Al elegir Local o Remoto, salir visualmente de Solitario.
+  document.addEventListener('click',function(ev){
+    if(ev.target?.closest?.('#playLocalBtnV177,#playRemoteBtnV177')){
+      setTimeout(()=>{
+        if(window.__topolineaMatchType!=='solo'){
+          document.body.classList.remove('v230-solo-flow','v231-solo-config');
+          const start=$('startBtn'); if(start && start.textContent==='Iniciar solitario') start.textContent='Iniciar partida';
+          const note=$('v231SoloConfigNote'); if(note) note.hidden=true;
+        }
+      },120);
+    }
+  },true);
+
+  function init(){
+    badge();
+    patchSoloButton();
+    if(window.__topolineaMatchType==='solo' || $('matchType')?.value==='solo') forceSoloConfig();
+    else leaveSoloVisual();
+  }
+
+  if(document.readyState==='loading') document.addEventListener('DOMContentLoaded',init); else init();
+  setTimeout(init,300); setTimeout(init,1200); setInterval(badge,1500);
+})();
+</script>
+
+
+
+<style id="v232-solitario-stability-style">
+/* ===== v232: estabilización visual Solitario ===== */
+body.v231-solo-config #configModeLabelV179,
+body.v232-solo-config #configModeLabelV179{
+  color:#facc15 !important;
+  font-weight:1000 !important;
+}
+body.v231-solo-config #v83OptionsContent,
+body.v232-solo-config #v83OptionsContent{
+  /* conserva el comportamiento de acordeón; solo parte colapsado */
+}
+</style>
+<script id="v232-solitario-stability-js">
+(function(){
+  'use strict';
+  const VERSION='v232';
+  const $=(id)=>document.getElementById(id);
+
+  function isSolo(){
+    return window.__topolineaMatchType==='solo' || $('matchType')?.value==='solo' || !!window.TopolineaSoloV230?.enabled;
+  }
+
+  function badge(){
+    ['versionMarkerV191','versionMarkerV192','versionMarkerV193','versionMarkerV194','versionMarkerV195','versionMarkerV196','versionMarkerV230','versionMarkerV231'].forEach(id=>$(id)?.remove());
+    let b=$('versionMarkerV232');
+    if(!b){
+      b=document.createElement('div');
+      b.id='versionMarkerV232';
+      b.style.cssText='position:fixed;right:8px;bottom:8px;z-index:99999;background:#111827;color:#facc15;border:1px solid #facc15;border-radius:999px;padding:4px 8px;font:700 11px system-ui;opacity:.75;pointer-events:none';
+      document.body.appendChild(b);
+    }
+    b.textContent=VERSION;
+    const build=$('buildVersionMarkerV194');
+    if(build) build.textContent='topolinea-v232-solitario-stable-config';
+  }
+
+  function enforceSoloVisuals(){
+    badge();
+    if(!isSolo()){
+      document.body.classList.remove('v232-solo-config');
+      return;
+    }
+    document.body.classList.add('v230-solo-flow','v231-solo-config','v232-solo-config','v188-local-flow');
+    document.body.classList.remove('v188-remote-prehost');
+
+    const label=$('configModeLabelV179');
+    if(label) label.textContent='Modo solitario · vs CPU';
+
+    const start=$('startBtn');
+    if(start) start.textContent='Iniciar solitario';
+
+    const match=$('matchType');
+    if(match) match.value='solo';
+    window.__topolineaMatchType='solo';
+
+    const players=$('playersMode');
+    if(players) players.value='1v1';
+
+    ['localConfigWrap','surfaceConfigSection'].forEach(id=>{
+      const el=$(id);
+      if(el){
+        el.hidden=false;
+        el.style.display='';
+        el.classList.remove('remote-hidden','remote-guest-hidden-v145','remote-guest-hidden-v155','v193-hidden');
+      }
+    });
+
+    // Opciones de partida minimizadas por defecto en Solitario.
+    const opt=$('v83OptionsContent');
+    const tog=$('v83OptionsToggle');
+    if(opt && !opt.dataset.v232UserOpened){
+      opt.hidden=false;
+      opt.style.display='';
+      opt.classList.add('collapsed');
+    }
+    if(tog && !opt?.dataset.v232UserOpened){
+      tog.classList.remove('expanded');
+      tog.setAttribute('aria-expanded','false');
+    }
+  }
+
+  function wireAccordionMemory(){
+    const tog=$('v83OptionsToggle');
+    const opt=$('v83OptionsContent');
+    if(!tog || !opt || tog.dataset.v232Accordion) return;
+    tog.dataset.v232Accordion='1';
+    tog.addEventListener('click',()=>{
+      setTimeout(()=>{
+        if(isSolo()) opt.dataset.v232UserOpened = opt.classList.contains('collapsed') ? '' : '1';
+      },50);
+    },true);
+  }
+
+  // Cada vez que se elige Solitario, reiniciar el estado minimizado de opciones.
+  document.addEventListener('click',function(ev){
+    if(!ev.target?.closest?.('#playSoloBtnV230')) return;
+    const opt=$('v83OptionsContent');
+    if(opt) delete opt.dataset.v232UserOpened;
+    setTimeout(enforceSoloVisuals,0);
+    setTimeout(enforceSoloVisuals,80);
+    setTimeout(enforceSoloVisuals,250);
+    setTimeout(enforceSoloVisuals,700);
+  },true);
+
+  function init(){
+    badge();
+    wireAccordionMemory();
+    if(isSolo()) enforceSoloVisuals();
+  }
+
+  if(document.readyState==='loading') document.addEventListener('DOMContentLoaded',init); else init();
+  setTimeout(init,300);
+  setTimeout(init,1200);
+  setInterval(()=>{ badge(); if(isSolo()) enforceSoloVisuals(); },500);
+})();
+</script>
+
+
+<style id="v233-play-mode-unified-style">
+/* ===== v233: pantalla Jugar consistente ===== */
+#playModeScreen .v177-lead{
+  margin-bottom:20px !important;
+}
+
+/* Los tres modos quedan como opciones equivalentes. */
+#playModeScreen .v177-actions{
+  grid-template-columns:1fr !important;
+  gap:14px !important;
+  margin-top:14px !important;
+}
+
+#playModeScreen .v177-actions + .v177-actions{
+  margin-top:14px !important;
+}
+
+#playModeScreen .v177-big-btn{
+  min-height:92px !important;
+  padding:16px 18px !important;
+  border-radius:24px !important;
+  border:1px solid rgba(148,163,184,.28) !important;
+  background:
+    linear-gradient(135deg, rgba(34,211,238,.16), rgba(236,72,153,.12)),
+    rgba(15,23,42,.86) !important;
+  color:#f8fafc !important;
+  box-shadow:0 12px 28px rgba(0,0,0,.22) !important;
+}
+
+#playModeScreen .v177-big-btn:hover{
+  transform:translateY(-1px);
+  border-color:rgba(34,211,238,.52) !important;
+  box-shadow:0 0 26px rgba(34,211,238,.10), 0 12px 28px rgba(0,0,0,.22) !important;
+}
+
+/* Anula el dorado heredado de v230 para Solitario. */
+#playSoloBtnV230{
+  border-color:rgba(148,163,184,.28) !important;
+  background:
+    linear-gradient(135deg, rgba(34,211,238,.16), rgba(236,72,153,.12)),
+    rgba(15,23,42,.86) !important;
+  box-shadow:0 12px 28px rgba(0,0,0,.22) !important;
+}
+
+#playSoloBtnV230:hover{
+  border-color:rgba(34,211,238,.52) !important;
+  box-shadow:0 0 26px rgba(34,211,238,.10), 0 12px 28px rgba(0,0,0,.22) !important;
+}
+
+@media(max-width:760px){
+  #playModeScreen .v177-big-btn{
+    min-height:88px !important;
+  }
+}
+</style>
+
+<script id="v233-version-marker-js">
+(function(){
+  'use strict';
+  const VERSION='v233';
+  const BUILD='topolinea-v233_play_modes_unified';
+  const $=(id)=>document.getElementById(id);
+
+  function badge(){
+    [
+      'versionMarkerV191','versionMarkerV192','versionMarkerV193','versionMarkerV194',
+      'versionMarkerV195','versionMarkerV196','versionMarkerV230','versionMarkerV231','versionMarkerV232'
+    ].forEach(id=>$(id)?.remove());
+
+    let b=$('versionMarkerV233');
+    if(!b){
+      b=document.createElement('div');
+      b.id='versionMarkerV233';
+      b.style.cssText='position:fixed;right:8px;bottom:8px;z-index:99999;background:#111827;color:#facc15;border:1px solid #facc15;border-radius:999px;padding:4px 8px;font:700 11px system-ui;opacity:.75;pointer-events:none';
+      document.body.appendChild(b);
+    }
+    b.textContent=VERSION;
+
+    const build=$('buildVersionMarkerV194');
+    if(build) build.textContent=BUILD;
+  }
+
+  function fixPlaySubtitle(){
+    const screen=$('playModeScreen');
+    const lead=screen?.querySelector?.('.v177-lead');
+    if(lead) lead.textContent='Elige cómo quieres jugar.';
+  }
+
+  function init(){
+    fixPlaySubtitle();
+    badge();
+  }
+
+  if(document.readyState==='loading') document.addEventListener('DOMContentLoaded',init);
+  else init();
+  setTimeout(init,300);
+  setTimeout(init,1200);
+  setInterval(badge,1500);
+})();
+</script>
+
+
+
+<style id="v234-visual-stability-style">
+/* ===== v234: estabilización definitiva de rótulos visuales ===== */
+[id^="versionMarkerV"]{
+  display:none !important;
+}
+#versionMarkerV234{
+  display:block !important;
+  position:fixed;
+  right:8px;
+  bottom:8px;
+  z-index:999999;
+  background:#111827;
+  color:#facc15;
+  border:1px solid #facc15;
+  border-radius:999px;
+  padding:4px 8px;
+  font:700 11px system-ui;
+  opacity:.75;
+  pointer-events:none;
+}
+body.v234-solo-config #configModeLabelV179{
+  color:#facc15 !important;
+  font-weight:1000 !important;
+}
+</style>
+
+<script id="v234-solitario-visual-stability-js">
+(function(){
+  'use strict';
+  const VERSION='v234';
+  const BUILD='topolinea-v234_solitario_visual_stability';
+  const $=(id)=>document.getElementById(id);
+
+  function isSolo(){
+    return window.__topolineaMatchType==='solo' || $('matchType')?.value==='solo' || !!window.TopolineaSoloV230?.enabled;
+  }
+
+  function ensureBadge(){
+    document.querySelectorAll('[id^="versionMarkerV"]').forEach(el=>{
+      if(el.id!=='versionMarkerV234') el.remove();
+    });
+    let b=$('versionMarkerV234');
+    if(!b){
+      b=document.createElement('div');
+      b.id='versionMarkerV234';
+      document.body.appendChild(b);
+    }
+    if(b.textContent!==VERSION) b.textContent=VERSION;
+    const build=$('buildVersionMarkerV194');
+    if(build && build.textContent!==BUILD) build.textContent=BUILD;
+  }
+
+  function stableSoloLabels(){
+    const solo=isSolo();
+    document.body.classList.toggle('v234-solo-config', solo);
+    if(!solo) return;
+
+    const label=$('configModeLabelV179');
+    if(label && label.textContent!=='Modo solitario · vs CPU'){
+      label.textContent='Modo solitario · vs CPU';
+    }
+
+    const start=$('startBtn');
+    if(start && start.textContent!=='Iniciar solitario'){
+      start.textContent='Iniciar solitario';
+    }
+
+    const match=$('matchType');
+    if(match && match.value!=='solo') match.value='solo';
+    window.__topolineaMatchType='solo';
+
+    const players=$('playersMode');
+    if(players && players.value!=='1v1') players.value='1v1';
+  }
+
+  function stablePlayModeText(){
+    const lead=$('playModeScreen')?.querySelector?.('.v177-lead');
+    if(lead && lead.textContent!=='Elige cómo quieres jugar.') lead.textContent='Elige cómo quieres jugar.';
+  }
+
+  function tick(){
+    ensureBadge();
+    stablePlayModeText();
+    stableSoloLabels();
+  }
+
+  function observeLabel(){
+    const label=$('configModeLabelV179');
+    if(!label || label.dataset.v234Observed) return;
+    label.dataset.v234Observed='1';
+    const mo=new MutationObserver(()=>{ if(isSolo()) stableSoloLabels(); });
+    mo.observe(label,{childList:true,characterData:true,subtree:true});
+  }
+
+  function init(){
+    tick();
+    observeLabel();
+  }
+
+  if(document.readyState==='loading') document.addEventListener('DOMContentLoaded',init);
+  else init();
+  setTimeout(init,100);
+  setTimeout(init,400);
+  setTimeout(init,1200);
+  setInterval(()=>{ tick(); observeLabel(); },100);
 })();
 </script>
 
