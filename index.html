@@ -7046,12 +7046,55 @@ body.v183-local-entry #remoteComingCard{
   </section>
 
   <section id="surfaceViewerIntroScreen" class="screen">
-    <div class="v177-shell">
-      <div class="v177-card">
-        <h2 class="v177-title">Visualizar superficies</h2>
-        <p class="v177-lead">Construye o escanea una posición y observa cómo cambia sobre distintas superficies topológicas.<br><span style="opacity:.82">En construcción.</span></p>
-        <div class="v177-secondary-row">
+    <div class="v206-surface-shell">
+      <div class="v206-surface-card">
+        <div class="v206-surface-head">
+          <div>
+            <h2 class="v177-title">Visualizar superficies</h2>
+            <p class="v177-lead">Construye o escanea una posición y observa cómo cambia sobre distintas superficies topológicas.<br><span style="opacity:.82">En construcción.</span></p>
+          </div>
           <button type="button" id="surfacesBackBtnV177" class="secondary v177-back">Volver al menú</button>
+        </div>
+
+        <div class="v206-compact-settings">
+          <div class="v206-entry-toggle" aria-label="Tipo de entrada">
+            <button type="button" class="active" data-entry="manual">Construir manualmente</button>
+            <button type="button" class="disabled" disabled data-entry="scan">Escanear tablero <span>próximamente</span></button>
+          </div>
+          <label>Tamaño <input id="v206SizeInput" type="number" min="5" max="15" value="10"></label>
+        </div>
+
+        <div class="v206-editor-card">
+          <div class="v206-editor-top">
+            <strong>Editor libre de posición</strong>
+            <span id="v206EditorSummary">0 Cyan · 0 Magenta</span>
+          </div>
+          <div class="v206-tools v207-tools-inline" id="v206Tools">
+            <button type="button" class="active" data-tool="A"><span class="v206-dot cyan"></span>Cyan</button>
+            <button type="button" data-tool="B"><span class="v206-dot magenta"></span>Magenta</button>
+            <button type="button" data-tool=".">Vacía</button>
+          </div>
+          <div class="v206-board-wrap">
+            <div id="v206Board" class="v206-board" aria-label="Editor manual de tablero"></div>
+          </div>
+        </div>
+
+        <div class="v206-panel v206-surface-select-panel v207-surface-below">
+          <h3>Superficie a visualizar</h3>
+          <div class="v206-surface-buttons" id="v206SurfaceButtons">
+            <button type="button" class="active" data-surface="plane"><span>▭</span> Plano</button>
+            <button type="button" data-surface="cylH"><span>◖◗</span> Cilindro I-D</button>
+            <button type="button" data-surface="cylV"><span>◒</span> Cilindro S-I</button>
+            <button type="button" data-surface="torus"><span>◎</span> Toro</button>
+            <button type="button" data-surface="mobius"><span>↕</span> Möbius</button>
+            <button type="button" data-surface="klein"><span>⌬</span> Klein</button>
+          </div>
+        </div>
+
+        <div class="v209-viewer-actions">
+          <button type="button" id="v206ConfirmBtn">Visualizar en 3D</button>
+          <div id="v206ConfirmMsg" class="v206-confirm-msg">Elige Cyan, Magenta o Vacía, toca las casillas y selecciona una superficie.</div>
+          <button type="button" id="v206ClearBtn" class="secondary">Limpiar tablero</button>
         </div>
       </div>
     </div>
@@ -15587,6 +15630,518 @@ body.v200-remote-config-active #startScreen .config-head p{
   function init(){ patch(); apply(); setTimeout(apply,80); setTimeout(apply,300); setTimeout(apply,900); }
   if(document.readyState==='loading') document.addEventListener('DOMContentLoaded',init); else init();
   setInterval(apply,250);
+})();
+</script>
+
+
+
+<style id="v206-surface-viewer-start-style">
+  #versionMarkerV208,#versionMarkerV207,#versionMarkerV206,#versionMarkerV205,#versionMarkerV204,#versionMarkerV203,#versionMarkerV202,#versionMarkerV201,#versionMarkerV200,#versionMarkerV199,#versionMarkerV198,#versionMarkerV197,#versionMarkerV196,#versionMarkerV195,#versionMarkerV194,#versionMarkerV193,#versionMarkerV192,#versionMarkerV191,#v190DiagPanel,#v188VisibleMarker{display:none!important;visibility:hidden!important;opacity:0!important;}
+
+  .v206-surface-shell{
+    width:min(1100px,100%);
+    min-height:calc(100vh - 44px);
+    margin:0 auto;
+    display:grid;
+    place-items:center;
+  }
+  .v206-surface-card{
+    width:min(980px,100%);
+    padding:22px;
+    border-radius:30px;
+    background:radial-gradient(circle at top left,rgba(34,211,238,.12),transparent 42%),radial-gradient(circle at bottom right,rgba(236,72,153,.12),transparent 42%),rgba(2,6,23,.78);
+    border:1px solid rgba(148,163,184,.22);
+    box-shadow:0 24px 70px rgba(0,0,0,.38), inset 0 1px 0 rgba(255,255,255,.04);
+  }
+  .v206-surface-head{
+    display:flex;
+    justify-content:space-between;
+    gap:14px;
+    align-items:flex-start;
+    margin-bottom:16px;
+  }
+  .v206-surface-head .v177-title,
+  .v206-surface-head .v177-lead{ text-align:left; margin-left:0; }
+  .v206-surface-head .v177-back{ flex:0 0 auto; }
+
+  .v206-flow-grid{
+    display:grid;
+    grid-template-columns:1fr 1fr;
+    gap:12px;
+    margin-bottom:14px;
+  }
+  .v206-panel{
+    padding:14px;
+    border-radius:22px;
+    background:rgba(15,23,42,.72);
+    border:1px solid rgba(148,163,184,.18);
+  }
+  .v206-panel h3{
+    margin:0 0 10px;
+    font-size:1.05rem;
+    color:#f8fafc;
+  }
+  .v206-choice-row,.v206-tools,.v206-surface-buttons{
+    display:grid;
+    gap:8px;
+  }
+  .v206-choice-row{grid-template-columns:1fr 1fr;}
+  .v206-tools{grid-template-columns:repeat(4,1fr);}
+  .v206-surface-buttons{grid-template-columns:repeat(3,1fr);}
+  .v206-choice,.v206-tools button,.v206-surface-buttons button{
+    min-height:44px;
+    border-radius:15px;
+    border:1px solid rgba(148,163,184,.22);
+    background:rgba(2,6,23,.62);
+    color:#e5e7eb;
+    font-weight:950;
+    display:flex;
+    align-items:center;
+    justify-content:center;
+    gap:7px;
+  }
+  .v206-choice.active,.v206-tools button.active,.v206-surface-buttons button.active{
+    border-color:rgba(34,211,238,.58);
+    background:radial-gradient(circle at top left,rgba(34,211,238,.18),transparent 48%),rgba(15,23,42,.88);
+    box-shadow:0 0 20px rgba(34,211,238,.10);
+  }
+  .v206-choice.disabled{opacity:.55;cursor:not-allowed;}
+  .v206-choice span{color:#94a3b8;font-size:.8rem;}
+  .v206-fields{
+    display:grid;
+    grid-template-columns:1fr 1fr;
+    gap:10px;
+  }
+  .v206-fields label{
+    display:grid;
+    gap:5px;
+    font-weight:900;
+    color:#cbd5e1;
+  }
+  .v206-hint{
+    margin:8px 0 0;
+    color:#94a3b8;
+    font-weight:750;
+    font-size:.9rem;
+  }
+  .v206-dot{
+    width:18px;height:18px;border-radius:999px;display:inline-block;border:2px solid rgba(255,255,255,.58);
+  }
+  .v206-dot.cyan{background:linear-gradient(145deg,#67e8f9,#0891b2);box-shadow:0 0 12px rgba(34,211,238,.28);}
+  .v206-dot.magenta{background:linear-gradient(145deg,#f9a8d4,#be185d);box-shadow:0 0 12px rgba(236,72,153,.28);}
+  .v206-block-icon{
+    width:22px;height:22px;border-radius:6px;display:inline-grid;place-items:center;
+    background:repeating-linear-gradient(45deg,#111827,#111827 5px,#1f2937 5px,#1f2937 10px);
+    color:#f8fafc;border:1px solid rgba(248,250,252,.18);
+  }
+
+  .v206-editor-card{
+    padding:16px;
+    border-radius:24px;
+    background:rgba(2,6,23,.64);
+    border:1px solid rgba(148,163,184,.20);
+  }
+  .v206-editor-top{
+    display:flex;
+    justify-content:space-between;
+    align-items:center;
+    gap:10px;
+    margin-bottom:12px;
+    color:#f8fafc;
+  }
+  #v206EditorSummary{
+    color:#cbd5e1;
+    font-weight:850;
+    padding:5px 10px;
+    border-radius:999px;
+    background:rgba(15,23,42,.72);
+    border:1px solid rgba(148,163,184,.18);
+  }
+  .v206-board-wrap{
+    overflow:auto;
+    padding:14px;
+    border-radius:20px;
+    background:rgba(15,23,42,.58);
+    border:1px solid rgba(148,163,184,.18);
+    display:grid;
+    justify-content:center;
+    touch-action:pan-x pan-y;
+  }
+  .v206-board{
+    --v206-cell:42px;
+    display:grid;
+    grid-template-columns:32px repeat(var(--v206-n), var(--v206-cell));
+    grid-auto-rows:var(--v206-cell);
+    gap:0;
+    width:max-content;
+  }
+  .v206-coord{
+    display:grid;
+    place-items:center;
+    color:#cbd5e1;
+    font-weight:950;
+    user-select:none;
+  }
+  .v206-cell{
+    width:var(--v206-cell);height:var(--v206-cell);
+    border:0;
+    border-radius:0;
+    background:radial-gradient(circle at center, rgba(2,6,23,.88) 0 2px, transparent 2.4px),linear-gradient(to right, rgba(15,23,42,.12) 1px, transparent 1px),linear-gradient(to bottom, rgba(15,23,42,.12) 1px, transparent 1px),#f6efe4;
+    display:grid;
+    place-items:center;
+    cursor:pointer;
+    padding:0;
+  }
+  .v206-cell:hover{outline:3px solid rgba(250,204,21,.75);z-index:2;}
+  .v206-piece{width:72%;height:72%;border-radius:999px;border:2px solid rgba(255,255,255,.58);box-shadow:inset 0 -5px 8px rgba(0,0,0,.22),0 4px 10px rgba(0,0,0,.34);}
+  .v206-piece.A{background:radial-gradient(circle at 34% 28%, rgba(255,255,255,.55), transparent 25%),linear-gradient(145deg,#67e8f9,#0891b2);}
+  .v206-piece.B{background:radial-gradient(circle at 34% 28%, rgba(255,255,255,.50), transparent 25%),linear-gradient(145deg,#f9a8d4,#be185d);}
+  .v206-cell.blocked{background:linear-gradient(to right, rgba(226,232,240,.10) 1px, transparent 1px),linear-gradient(to bottom, rgba(226,232,240,.10) 1px, transparent 1px),repeating-linear-gradient(45deg,#111827,#111827 7px,#1f2937 7px,#1f2937 14px);color:#f8fafc;font-size:calc(var(--v206-cell)*.52);font-weight:950;}
+  .v206-confirm-msg{
+    margin-top:12px;
+    padding:11px 13px;
+    border-radius:16px;
+    background:rgba(15,23,42,.66);
+    border:1px solid rgba(148,163,184,.18);
+    color:#cbd5e1;
+    font-weight:850;
+  }
+  .v206-confirm-msg.ok{border-color:rgba(34,197,94,.32);color:#bbf7d0;}
+  .v206-actions{display:grid;grid-template-columns:1fr 1fr;gap:10px;margin-top:12px;}
+
+  @media(max-width:760px){
+    .v206-surface-card{padding:18px;border-radius:26px;}
+    .v206-surface-head{display:grid;}
+    .v206-flow-grid{grid-template-columns:1fr;}
+    .v206-choice-row,.v206-tools,.v206-surface-buttons,.v206-fields,.v206-actions{grid-template-columns:1fr;}
+    .v206-board{--v206-cell:34px;grid-template-columns:28px repeat(var(--v206-n), var(--v206-cell));}
+    .v206-editor-top{display:grid;}
+  }
+
+  /* ===== v207: Visualizar superficies más compacto ===== */
+  .v206-surface-shell{place-items:start center;padding-top:10px;}
+  .v206-surface-card{width:min(920px,100%);padding:18px;}
+  .v206-surface-head{margin-bottom:10px;align-items:center;}
+  .v206-surface-head .v177-title{font-size:clamp(1.35rem,4vw,2rem);margin-bottom:4px;}
+  .v206-surface-head .v177-lead{font-size:.98rem;margin-bottom:0;}
+  .v206-compact-settings{
+    display:grid;
+    grid-template-columns:1fr 110px 110px;
+    gap:10px;
+    align-items:end;
+    margin-bottom:10px;
+    padding:10px 12px;
+    border-radius:18px;
+    background:rgba(15,23,42,.68);
+    border:1px solid rgba(148,163,184,.18);
+  }
+  .v206-compact-settings label{display:grid;gap:4px;color:#cbd5e1;font-weight:900;font-size:.86rem;}
+  .v206-compact-settings input{min-height:38px;padding:7px 9px;border-radius:12px;font-weight:900;}
+  .v206-mode-pill{color:#e5e7eb;font-weight:900;line-height:1.25;}
+  .v206-mode-pill span{color:#94a3b8;font-weight:800;}
+  .v206-editor-card{padding:12px;border-radius:22px;}
+  .v206-editor-top{margin-bottom:8px;}
+  .v207-tools-inline{grid-template-columns:repeat(3,1fr)!important;margin:0 0 8px;}
+  .v207-tools-inline button{min-height:40px!important;}
+  .v206-board-wrap{padding:10px;border-radius:18px;}
+  .v206-confirm-msg{margin-top:9px;padding:9px 11px;font-size:.9rem;}
+  .v206-actions{margin-top:9px;}
+  .v207-surface-below{margin-top:10px;padding:12px;}
+  .v207-surface-below h3{margin-bottom:8px;}
+  .v206-surface-buttons{grid-template-columns:repeat(2,1fr)!important;}
+  .v206-surface-buttons button{justify-content:flex-start;text-align:left;min-height:44px;padding:10px 12px;}
+  .v206-surface-buttons button span{display:inline-grid;place-items:center;width:26px;height:26px;border-radius:999px;background:rgba(15,23,42,.76);border:1px solid rgba(148,163,184,.22);color:#facc15;font-weight:1000;}
+  @media(max-width:760px){
+    .v206-compact-settings{grid-template-columns:1fr 1fr;}
+    .v206-mode-pill{grid-column:1/-1;}
+    .v207-tools-inline{grid-template-columns:repeat(3,1fr)!important;}
+    .v206-surface-buttons{grid-template-columns:1fr 1fr!important;}
+    .v206-surface-buttons button{font-size:.86rem;gap:6px;}
+  }
+
+  /* ===== v208: entrada compacta + visualización 3D real ===== */
+  .v206-entry-toggle{
+    display:grid;
+    grid-template-columns:1fr 1fr;
+    gap:8px;
+    align-items:stretch;
+  }
+  .v206-entry-toggle button{
+    min-height:38px;
+    padding:8px 10px;
+    border-radius:14px;
+    border:1px solid rgba(148,163,184,.22);
+    background:rgba(2,6,23,.62);
+    color:#e5e7eb;
+    font-weight:950;
+  }
+  .v206-entry-toggle button.active{
+    border-color:rgba(34,211,238,.58);
+    background:radial-gradient(circle at top left,rgba(34,211,238,.18),transparent 48%),rgba(15,23,42,.88);
+    box-shadow:0 0 20px rgba(34,211,238,.10);
+  }
+  .v206-entry-toggle button.disabled{
+    opacity:.50;
+    cursor:not-allowed;
+  }
+  .v206-entry-toggle span{
+    display:block;
+    color:#94a3b8;
+    font-size:.76rem;
+    font-weight:800;
+    margin-top:2px;
+  }
+  #v206ConfirmBtn{
+    background:linear-gradient(90deg,#22d3ee,#ec4899) !important;
+    color:#020617 !important;
+    font-weight:1000 !important;
+  }
+  #v206SurfaceButtons button.active span{
+    color:#f8fafc;
+    border-color:rgba(250,204,21,.42);
+    box-shadow:0 0 14px rgba(250,204,21,.12);
+  }
+  @media(max-width:760px){
+    .v206-entry-toggle{grid-template-columns:1fr 1fr;}
+  }
+
+
+  /* ===== v209: Visualizar superficies compacto y centrado en 3D ===== */
+  .v206-compact-settings{
+    grid-template-columns:minmax(0,1fr) 104px !important;
+    align-items:stretch !important;
+    padding:9px 10px !important;
+    gap:9px !important;
+  }
+  .v206-entry-toggle button{
+    min-height:34px !important;
+    padding:7px 8px !important;
+    font-size:.88rem !important;
+    line-height:1.12 !important;
+  }
+  .v206-compact-settings label{
+    align-self:stretch;
+    display:grid;
+    align-content:end;
+  }
+  .v206-compact-settings input{
+    min-height:34px !important;
+    padding:6px 8px !important;
+  }
+  .v206-editor-card{
+    padding:11px !important;
+    border-radius:20px !important;
+  }
+  .v206-editor-top{
+    margin-bottom:7px !important;
+  }
+  #v206EditorSummary{
+    padding:4px 9px !important;
+    font-size:.86rem !important;
+  }
+  .v207-tools-inline{
+    gap:7px !important;
+    margin-bottom:7px !important;
+  }
+  .v207-tools-inline button{
+    min-height:36px !important;
+    padding:7px 8px !important;
+  }
+  .v206-board-wrap{
+    padding:8px !important;
+  }
+  .v207-surface-below{
+    margin-top:9px !important;
+    padding:11px !important;
+  }
+  .v207-surface-below h3{
+    font-size:1rem !important;
+    margin-bottom:7px !important;
+  }
+  .v206-surface-buttons{
+    gap:7px !important;
+  }
+  .v206-surface-buttons button{
+    min-height:38px !important;
+    padding:8px 10px !important;
+    border-radius:14px !important;
+    font-size:.9rem !important;
+  }
+  .v206-surface-buttons button span{
+    width:24px !important;
+    height:24px !important;
+    font-size:.9rem !important;
+  }
+  .v209-viewer-actions{
+    display:grid;
+    gap:8px;
+    margin-top:9px;
+  }
+  .v209-viewer-actions #v206ConfirmBtn{
+    min-height:48px;
+    border-radius:18px;
+    background:linear-gradient(90deg,#22d3ee,#ec4899) !important;
+    color:#020617 !important;
+    font-weight:1000 !important;
+  }
+  .v209-viewer-actions #v206ClearBtn{
+    min-height:38px;
+    border-radius:14px;
+  }
+  .v206-confirm-msg{
+    margin-top:0 !important;
+    padding:8px 10px !important;
+    font-size:.84rem !important;
+    text-align:center;
+    opacity:.9;
+  }
+  @media(max-width:760px){
+    .v206-compact-settings{grid-template-columns:1fr 92px !important;}
+    .v206-entry-toggle{grid-template-columns:1fr 1fr !important;}
+    .v206-surface-buttons{grid-template-columns:1fr 1fr !important;}
+  }
+
+</style>
+<script id="v206-surface-viewer-start-js">
+(function(){
+  'use strict';
+  const VERSION='v209';
+  const $=id=>document.getElementById(id);
+  const letters='ABCDEFGHIJKLMNOPQRSTUVWXYZ'.split('');
+  let n=10, k=6, tool='A', surface='plane';
+  let board=[];
+
+  function versionBadge(){
+    ['versionMarkerV207','versionMarkerV206','versionMarkerV205','versionMarkerV204','versionMarkerV203','versionMarkerV202','versionMarkerV201','versionMarkerV200','versionMarkerV199','versionMarkerV198','versionMarkerV197','versionMarkerV196','versionMarkerV195','versionMarkerV194','versionMarkerV193','versionMarkerV192','versionMarkerV191','v190DiagPanel','v188VisibleMarker'].forEach(id=>$(id)?.remove());
+    let b=$('versionMarkerV209');
+    if(!b){
+      b=document.createElement('div');
+      b.id='versionMarkerV209';
+      b.style.cssText='position:fixed;right:8px;bottom:8px;z-index:99999;background:#111827;color:#facc15;border:1px solid #facc15;border-radius:999px;padding:4px 8px;font:700 11px system-ui;opacity:.75;pointer-events:none';
+      document.body.appendChild(b);
+    }
+    b.textContent=VERSION;
+  }
+
+  function clampInt(value,min,max,fallback){
+    const x=parseInt(value,10);
+    if(!Number.isFinite(x)) return fallback;
+    return Math.max(min,Math.min(max,x));
+  }
+  function resetBoard(){ board=Array.from({length:n},()=>Array(n).fill('.')); }
+  function ensureBoard(){
+    if(board.length===n && board.every(row=>row.length===n)) return;
+    const old=board;
+    board=Array.from({length:n},(_,r)=>Array.from({length:n},(_,c)=>old[r]?.[c] || '.'));
+  }
+  function counts(){
+    let A=0,B=0,X=0;
+    board.forEach(row=>row.forEach(v=>{if(v==='A')A++; else if(v==='B')B++; else if(v==='X')X++;}));
+    return {A,B,X};
+  }
+  function render(){
+    const el=$('v206Board'); if(!el) return;
+    ensureBoard();
+    el.style.setProperty('--v206-n',String(n));
+    let html='<div class="v206-coord"></div>';
+    for(let c=0;c<n;c++) html+=`<div class="v206-coord">${letters[c]||c+1}</div>`;
+    for(let r=0;r<n;r++){
+      html+=`<div class="v206-coord">${n-r}</div>`;
+      for(let c=0;c<n;c++){
+        const v=board[r][c];
+        const content=v==='A'||v==='B'?`<span class="v206-piece ${v}"></span>`:(v==='X'?'×':'');
+        html+=`<button type="button" class="v206-cell ${v==='X'?'blocked':''}" data-r="${r}" data-c="${c}" aria-label="${letters[c]}${n-r}">${content}</button>`;
+      }
+    }
+    el.innerHTML=html;
+    const ct=counts();
+    const sum=$('v206EditorSummary');
+    if(sum) sum.textContent=`${ct.A} Cyan · ${ct.B} Magenta`;
+  }
+  function setTool(next){
+    tool=next;
+    document.querySelectorAll('#v206Tools [data-tool]').forEach(b=>b.classList.toggle('active',b.dataset.tool===tool));
+  }
+  function setSurface(next){
+    surface=next;
+    document.querySelectorAll('#v206SurfaceButtons [data-surface]').forEach(b=>b.classList.toggle('active',b.dataset.surface===surface));
+  }
+  function applySize(){
+    n=clampInt($('v206SizeInput')?.value,5,15,10);
+    k=6;
+    if($('v206SizeInput')) $('v206SizeInput').value=n;
+    ensureBoard();
+    render();
+  }
+  function surfaceLabel(code){
+    return ({plane:'Plano',cylH:'Cilindro izquierda-derecha',cylV:'Cilindro superior-inferior',torus:'Toro',mobius:'Cinta de Möbius',klein:'Botella de Klein'})[code] || 'Plano';
+  }
+  function syncToMainState(){
+    if(!window.state) return false;
+    const s=window.state;
+    s.rows=n; s.cols=n; s.k=6;
+    s.mode='1v1';
+    s.matchType='viewer';
+    s.surfaceType=surface;
+    s.wrapH = surface==='cylH' || surface==='torus' || surface==='mobius' || surface==='klein';
+    s.wrapV = surface==='cylV' || surface==='torus' || surface==='klein';
+    s.flipH = surface==='mobius' || surface==='klein';
+    s.flipV = false;
+    s.board=board.map(row=>row.map(v=>v==='A'?'A':(v==='B'?'B':0)));
+    s.blocked=new Set();
+    s.moveIndex=0;
+    s.gameOver=false;
+    s.winner=null;
+    s.winningCells=[];
+    s.history=[];
+    s.clockOn=false;
+    return true;
+  }
+  function confirmPosition(){
+    const ct=counts();
+    const msg=$('v206ConfirmMsg');
+    const ok=syncToMainState();
+    if(msg){
+      msg.classList.toggle('ok',ok);
+      msg.textContent= ok
+        ? `${surfaceLabel(surface)} · tablero ${n}×${n} · ${ct.A} Cyan · ${ct.B} Magenta.`
+        : 'No se pudo abrir el visor 3D desde este estado.';
+    }
+    if(ok){
+      try{
+        if(window.view){ window.view.mode='surface'; window.view.dirty=true; }
+        const badge=document.getElementById('viewerModeBadge');
+        if(badge) badge.textContent=surfaceLabel(surface);
+        if(typeof window.openViewer==='function') window.openViewer();
+      }catch(err){
+        console.error('[v208] No se pudo abrir visor 3D',err);
+        if(msg){ msg.classList.remove('ok'); msg.textContent='La posición fue preparada, pero no se pudo abrir el visor 3D.'; }
+      }
+    }
+  }
+  function bind(){
+    $('v206Board')?.addEventListener('click',e=>{
+      const cell=e.target.closest('.v206-cell'); if(!cell) return;
+      const r=+cell.dataset.r, c=+cell.dataset.c;
+      board[r][c]=tool;
+      const msg=$('v206ConfirmMsg'); if(msg){msg.classList.remove('ok'); msg.textContent='Posición modificada. Puedes seguir editando o confirmar nuevamente.';}
+      render();
+    });
+    $('v206Tools')?.addEventListener('click',e=>{const b=e.target.closest('[data-tool]'); if(b) setTool(b.dataset.tool);});
+    $('v206SurfaceButtons')?.addEventListener('click',e=>{const b=e.target.closest('[data-surface]'); if(b) setSurface(b.dataset.surface);});
+    $('v206SizeInput')?.addEventListener('change',applySize);
+    $('v206ClearBtn')?.addEventListener('click',()=>{resetBoard(); const msg=$('v206ConfirmMsg'); if(msg){msg.classList.remove('ok'); msg.textContent='Tablero limpio.';} render();});
+    $('v206ConfirmBtn')?.addEventListener('click',confirmPosition);
+  }
+  function init(){
+    versionBadge();
+    if(!board.length) resetBoard();
+    bind();
+    render();
+  }
+  if(document.readyState==='loading') document.addEventListener('DOMContentLoaded',init); else init();
+  setTimeout(init,700);
+  setInterval(versionBadge,1500);
 })();
 </script>
 
