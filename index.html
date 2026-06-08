@@ -5980,6 +5980,196 @@ body.viewer-open #gameScreen .board-limit{
 }
 </style>
 
+
+<style id="v223-analysis-style">
+/* ===== v223: análisis básico automático del visualizador ===== */
+.v223-analysis-card{
+  margin-top:14px;
+  padding:14px;
+  border-radius:22px;
+  background:
+    radial-gradient(circle at top left, rgba(34,211,238,.10), transparent 42%),
+    radial-gradient(circle at bottom right, rgba(236,72,153,.08), transparent 42%),
+    rgba(2,6,23,.70);
+  border:1px solid rgba(148,163,184,.20);
+  box-shadow:0 10px 26px rgba(0,0,0,.20), inset 0 1px 0 rgba(255,255,255,.03);
+}
+.v223-analysis-head{
+  display:flex;
+  align-items:center;
+  justify-content:space-between;
+  gap:10px;
+  margin-bottom:10px;
+}
+.v223-analysis-head strong{
+  color:#f8fafc;
+  font-size:1.05rem;
+  font-weight:1000;
+}
+.v223-analysis-head span{
+  color:#facc15;
+  background:rgba(250,204,21,.10);
+  border:1px solid rgba(250,204,21,.22);
+  border-radius:999px;
+  padding:4px 9px;
+  font-size:.78rem;
+  font-weight:950;
+}
+.v223-analysis-body{
+  display:grid;
+  gap:8px;
+  color:#cbd5e1;
+  font-size:.92rem;
+  font-weight:850;
+  line-height:1.28;
+}
+.v223-analysis-row{
+  display:flex;
+  align-items:center;
+  justify-content:space-between;
+  gap:10px;
+  padding:8px 10px;
+  border-radius:14px;
+  background:rgba(15,23,42,.58);
+  border:1px solid rgba(148,163,184,.15);
+}
+.v223-analysis-row b{color:#f8fafc;}
+.v223-analysis-row .cyan{color:#67e8f9;}
+.v223-analysis-row .magenta{color:#f9a8d4;}
+.v223-analysis-winner{
+  padding:9px 11px;
+  border-radius:14px;
+  color:#fef3c7;
+  background:rgba(250,204,21,.13);
+  border:1px solid rgba(250,204,21,.28);
+  font-weight:1000;
+}
+.v206-cell.v223-win-A{
+  box-shadow:inset 0 0 0 3px rgba(250,204,21,.80), 0 0 14px rgba(34,211,238,.24) !important;
+  z-index:3;
+}
+.v206-cell.v223-win-B{
+  box-shadow:inset 0 0 0 3px rgba(250,204,21,.80), 0 0 14px rgba(236,72,153,.24) !important;
+  z-index:3;
+}
+@media(max-width:760px){
+  .v223-analysis-row{align-items:flex-start;flex-direction:column;gap:3px;}
+}
+</style>
+
+
+
+<style id="v226-analysis-inline-style">
+/* ===== v226: análisis integrado arriba del tablero ===== */
+.v226-analysis-inline{
+  margin:8px 0 10px;
+  padding:8px 10px;
+  border-radius:16px;
+  background:rgba(2,6,23,.48);
+  border:1px solid rgba(148,163,184,.16);
+}
+.v226-analysis-inline .v223-analysis-body{
+  display:flex !important;
+  flex-wrap:wrap;
+  align-items:center;
+  gap:7px;
+  color:#cbd5e1;
+  font-size:.84rem;
+  font-weight:900;
+  line-height:1.2;
+}
+.v226-analysis-inline .v226-analysis-chip{
+  display:inline-flex;
+  align-items:center;
+  gap:5px;
+  padding:5px 8px;
+  border-radius:999px;
+  background:rgba(15,23,42,.72);
+  border:1px solid rgba(148,163,184,.16);
+  white-space:nowrap;
+}
+.v226-analysis-inline .v226-analysis-chip.cyan{
+  color:#67e8f9;
+  border-color:rgba(34,211,238,.24);
+}
+.v226-analysis-inline .v226-analysis-chip.magenta{
+  color:#f9a8d4;
+  border-color:rgba(236,72,153,.24);
+}
+.v226-analysis-inline .v223-analysis-winner{
+  display:inline-flex;
+  align-items:center;
+  padding:5px 9px;
+  border-radius:999px;
+  color:#fef3c7;
+  background:rgba(250,204,21,.13);
+  border:1px solid rgba(250,204,21,.28);
+  font-weight:1000;
+}
+.v226-analysis-inline .v223-analysis-row{
+  display:contents !important;
+  padding:0 !important;
+  border:0 !important;
+  background:transparent !important;
+}
+</style>
+
+
+
+<style id="v226-analysis-labels-style">
+/* ===== v226: aclarar totales y máximas conexiones ===== */
+#v206EditorSummary{
+  display:inline-flex !important;
+  align-items:center;
+  flex-wrap:wrap;
+  gap:6px;
+  color:#e2e8f0 !important;
+  background:rgba(15,23,42,.78) !important;
+  border:1px solid rgba(148,163,184,.22) !important;
+  padding:6px 11px !important;
+}
+.v226-total-label{
+  color:#94a3b8;
+  font-size:.78rem;
+  font-weight:950;
+  margin-right:2px;
+}
+.v226-total-cyan{color:#67e8f9;font-weight:1000;}
+.v226-total-magenta{color:#f9a8d4;font-weight:1000;}
+.v226-total-sep{color:#64748b;font-weight:900;}
+.v226-analysis-inline .v223-analysis-body{
+  display:grid !important;
+  gap:7px;
+  align-items:start;
+}
+.v226-analysis-title{
+  color:#cbd5e1;
+  font-size:.80rem;
+  font-weight:1000;
+  letter-spacing:.02em;
+}
+.v226-analysis-max-row{
+  display:flex;
+  flex-wrap:wrap;
+  gap:7px;
+  align-items:center;
+}
+.v226-analysis-inline .v226-analysis-chip{
+  font-size:.86rem;
+}
+.v226-winner-line{
+  display:flex;
+  width:100%;
+  margin-top:1px;
+}
+.v226-winner-line .v223-analysis-winner{
+  max-width:100%;
+}
+@media(max-width:760px){
+  #v206EditorSummary{width:100%;justify-content:flex-start;}
+}
+</style>
+
 <style id="v100-remove-logo-ellipses-style">
 /* v100: eliminar elipses/órbitas decorativas detrás del logo, sin tocar la escena inferior */
 .hero-logo .orbit,
@@ -7266,6 +7456,9 @@ body.v183-local-entry #remoteComingCard{
           <div class="v206-editor-top">
             <strong>Construir posición</strong>
             <span id="v206EditorSummary">0 Cyan · 0 Magenta</span>
+          </div>
+          <div class="v226-analysis-inline" id="v223AnalysisCard" aria-live="polite">
+            <div id="v223AnalysisBody" class="v223-analysis-body">Sin fichas para analizar.</div>
           </div>
           <div class="v206-tools v207-tools-inline" id="v206Tools">
             <button type="button" class="active" data-tool="A"><span class="v206-dot cyan"></span>Cyan</button>
@@ -16323,7 +16516,7 @@ body.v200-remote-config-active #startScreen .config-head p{
 <script id="v214-surface-viewer-start-js">
 (function(){
   'use strict';
-  const VERSION='v222';
+  const VERSION='v226';
   const $=id=>document.getElementById(id);
   const letters='ABCDEFGHIJKLMNOPQRSTUVWXYZ'.split('');
   let n=10, k=6, tool='A', surface='plane';
@@ -16365,6 +16558,109 @@ body.v200-remote-config-active #startScreen .config-head p{
     board.forEach(row=>row.forEach(v=>{if(v==='A')A++; else if(v==='B')B++; else if(v==='X')X++;}));
     return {A,B,X};
   }
+
+  const V223_TARGET=6;
+  function v223SurfaceFlags(){
+    return {
+      wrapH: surface==='cylH' || surface==='torus' || surface==='mobius' || surface==='klein',
+      wrapV: surface==='cylV' || surface==='torus' || surface==='klein',
+      flipH: surface==='mobius' || surface==='klein',
+      flipV: false
+    };
+  }
+  function v223Step(r,c,dr,dc){
+    const f=v223SurfaceFlags();
+    let nr=r+dr, nc=c+dc;
+    let ndr=dr, ndc=dc;
+
+    /* v226: en superficies con identificación invertida izquierda-derecha
+       (Möbius y Klein), al cruzar el borde horizontal se refleja la coordenada
+       vertical y también se invierte la componente vertical de la dirección.
+       Sin esto aparecen falsos positivos/falsos negativos en diagonales que
+       atraviesan el borde identificado. */
+    if(nc<0 || nc>=n){
+      if(!f.wrapH) return null;
+      nc=(nc+n)%n;
+      if(f.flipH){
+        nr=n-1-nr;
+        ndr=-ndr;
+      }
+    }
+    if(nr<0 || nr>=n){
+      if(!f.wrapV) return null;
+      nr=(nr+n)%n;
+      if(f.flipV){
+        nc=n-1-nc;
+        ndc=-ndc;
+      }
+    }
+    if(nr<0 || nr>=n || nc<0 || nc>=n) return null;
+    return {r:nr,c:nc,dr:ndr,dc:ndc};
+  }
+  function v223AnalyzePlayer(player){
+    /* v226: se exploran las 8 direcciones. En superficies con inversión,
+       una línea puede cambiar su dirección aparente al cruzar el borde, por lo
+       que las 4 direcciones canónicas ya no bastan para encontrar todos los
+       segmentos correctos. */
+    const dirs=[[0,1],[0,-1],[1,0],[-1,0],[1,1],[-1,-1],[1,-1],[-1,1]];
+    let best={len:0,line:[]};
+    for(let r=0;r<n;r++){
+      for(let c=0;c<n;c++){
+        if(board[r]?.[c]!==player) continue;
+        for(const [startDr,startDc] of dirs){
+          const line=[];
+          const seen=new Set();
+          let cr=r, cc=c, dr=startDr, dc=startDc;
+          for(let guard=0; guard<n*n; guard++){
+            const key=cr+','+cc+','+dr+','+dc;
+            if(seen.has(key)) break;
+            if(board[cr]?.[cc]!==player) break;
+            seen.add(key);
+            line.push({r:cr,c:cc});
+            const next=v223Step(cr,cc,dr,dc);
+            if(!next) break;
+            cr=next.r; cc=next.c; dr=next.dr; dc=next.dc;
+          }
+          if(line.length>best.len) best={len:line.length,line};
+        }
+      }
+    }
+    return best;
+  }
+  function v223AnalyzePosition(){
+    const ct=counts();
+    const A=v223AnalyzePlayer('A');
+    const B=v223AnalyzePlayer('B');
+    const winners=[];
+    if(A.len>=V223_TARGET) winners.push('A');
+    if(B.len>=V223_TARGET) winners.push('B');
+    const winKeys=new Map();
+    if(A.len>=V223_TARGET) A.line.forEach(p=>winKeys.set(p.r+','+p.c,'A'));
+    if(B.len>=V223_TARGET) B.line.forEach(p=>winKeys.set(p.r+','+p.c,'B'));
+    return {counts:ct,A,B,winners,winKeys};
+  }
+  function v223UpdateAnalysisPanel(analysis){
+    const body=$('v223AnalysisBody');
+    const badge=$('v223AnalysisBadge');
+    if(!body) return;
+    analysis=analysis || v223AnalyzePosition();
+    const total=analysis.counts.A + analysis.counts.B;
+    if(badge) badge.textContent = surfaceLabel(surface);
+    if(total===0){
+      body.innerHTML='Sin fichas para analizar.';
+      return;
+    }
+    const rows=[
+      `<div class="v226-analysis-title">Máximas conexiones</div>`,
+      `<div class="v226-analysis-max-row"><span class="v226-analysis-chip cyan">Cyan: <b>${analysis.A.len}</b></span><span class="v226-analysis-chip magenta">Magenta: <b>${analysis.B.len}</b></span></div>`
+    ];
+    if(analysis.winners.length){
+      const names=analysis.winners.map(x=>x==='A'?'Cyan':'Magenta').join(' y ');
+      rows.push(`<div class="v226-winner-line"><span class="v223-analysis-winner">🏆 ${names} conecta ${V223_TARGET} o más</span></div>`);
+    }
+    body.innerHTML=rows.join('');
+  }
+
   const EMPTY_MSG='Construye una posición o escanea un tablero físico y visualízalo sobre distintas superficies.';
   const EDIT_MSG='Visualiza la posición sobre distintas superficies o continúa editándola.';
   function hasPosition(){
@@ -16387,6 +16683,7 @@ body.v200-remote-config-active #startScreen .config-head p{
   function render(){
     const el=$('v206Board'); if(!el) return;
     ensureBoard();
+    const analysis=v223AnalyzePosition();
     el.style.setProperty('--v206-n',String(n));
     let html='<div class="v206-coord"></div>';
     for(let c=0;c<n;c++) html+=`<div class="v206-coord">${letters[c]||c+1}</div>`;
@@ -16395,14 +16692,17 @@ body.v200-remote-config-active #startScreen .config-head p{
       for(let c=0;c<n;c++){
         const v=board[r][c];
         const content=v==='A'||v==='B'?`<span class="v206-piece ${v}"></span>`:(v==='X'?'×':'');
-        html+=`<button type="button" class="v206-cell ${v==='X'?'blocked':''}" data-r="${r}" data-c="${c}" aria-label="${letters[c]}${n-r}">${content}</button>`;
+        const win=analysis.winKeys.get(r+','+c);
+        const cls=['v206-cell', v==='X'?'blocked':'', win==='A'?'v223-win-A':'', win==='B'?'v223-win-B':''].filter(Boolean).join(' ');
+        html+=`<button type="button" class="${cls}" data-r="${r}" data-c="${c}" aria-label="${letters[c]}${n-r}">${content}</button>`;
       }
     }
     el.innerHTML=html;
     const ct=counts();
     const sum=$('v206EditorSummary');
-    if(sum) sum.textContent=`${ct.A} Cyan · ${ct.B} Magenta`;
+    if(sum) sum.innerHTML=`<span class="v226-total-label">Total de fichas</span><span class="v226-total-cyan">${ct.A} Cyan</span><span class="v226-total-sep">·</span><span class="v226-total-magenta">${ct.B} Magenta</span>`;
     updateEditorStateMessage();
+    v223UpdateAnalysisPanel(analysis);
   }
   function setTool(next){
     tool=next;
@@ -16411,6 +16711,7 @@ body.v200-remote-config-active #startScreen .config-head p{
   function setSurface(next){
     surface=next;
     document.querySelectorAll('#v206SurfaceButtons [data-surface]').forEach(b=>b.classList.toggle('active',b.dataset.surface===surface));
+    render();
   }
   function applySize(){
     n=clampInt($('v206SizeInput')?.value,5,15,10);
