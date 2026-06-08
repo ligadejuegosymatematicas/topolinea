@@ -13998,5 +13998,178 @@ if(lastRoom){
 })();
 </script>
 
+
+
+<style id="v192-clean-leave-room-style">
+  #v190DiagPanel,
+  #v188VisibleMarker,
+  #versionMarkerV191{display:none !important;visibility:hidden !important;opacity:0 !important;}
+</style>
+<script id="v192-leave-room-and-url-fix-js">
+(function(){
+  'use strict';
+  const VERSION='v192';
+  const $=(id)=>document.getElementById(id);
+  const screens=['mainMenuScreen','playModeScreen','surfaceViewerIntroScreen','startScreen','gameScreen'];
+
+  function showScreen(id){
+    screens.forEach(name=>$(name)?.classList.toggle('active', name===id));
+    try{ window.scrollTo({top:0,left:0,behavior:'auto'}); }catch(e){}
+    setTimeout(applyVisibility, 0);
+  }
+
+  function updateVersionBadge(){
+    ['v190DiagPanel','v188VisibleMarker','versionMarkerV191'].forEach(id=>$(id)?.remove());
+    let badge=$('versionMarkerV192');
+    if(!badge){
+      badge=document.createElement('div');
+      badge.id='versionMarkerV192';
+      badge.style.cssText='position:fixed;right:8px;bottom:8px;z-index:99999;background:#111827;color:#facc15;border:1px solid #facc15;border-radius:999px;padding:4px 8px;font:700 11px system-ui;opacity:.75;pointer-events:none';
+      document.body.appendChild(badge);
+    }
+    badge.textContent=VERSION;
+  }
+
+  function clearRoomQuery(){
+    try{
+      const url=new URL(window.location.href);
+      if(url.searchParams.has('room')){
+        url.searchParams.delete('room');
+        const query=url.searchParams.toString();
+        const clean=url.pathname+(query?'?'+query:'')+url.hash;
+        window.history.replaceState({}, document.title, clean);
+      }
+    }catch(e){}
+  }
+
+  function setLocalMode(){
+    const match=$('matchType');
+    if(match) match.value='local';
+    window.__topolineaMatchType='local';
+    try{ window.setTopolineaFlowV132?.('local'); }catch(e){}
+  }
+
+  function clearRemoteUi(){
+    const info=$('remoteRoomInfoV132');
+    if(info) info.hidden=true;
+    const code=$('joinRoomCodeV132');
+    if(code) code.value='';
+    const link=$('remoteRoomLinkV132');
+    if(link) link.value='';
+    const status=$('remoteStatusV132');
+    if(status){ status.textContent='Firebase listo para probar conexión.'; status.removeAttribute('data-kind'); }
+    const card=$('remoteComingCard');
+    if(card){ card.classList.remove('active'); card.style.display='none'; card.setAttribute('aria-hidden','true'); }
+    document.body.classList.remove('v188-remote-prehost');
+    document.body.classList.add('v188-local-flow');
+    $('localConfigWrap')?.classList.remove('remote-hidden','remote-guest-hidden-v145','remote-guest-hidden-v155');
+    document.querySelectorAll('.v83-options-group,.v83-preview-group,.actions').forEach(el=>{el.style.display='';el.classList.remove('remote-hidden','remote-guest-hidden-v145','remote-guest-hidden-v155');});
+    const label=$('configModeLabelV179');
+    if(label) label.textContent='Modo local';
+  }
+
+  function leaveRemoteSessionLocalOnly(){
+    try{ if(typeof stopClock==='function') stopClock(); }catch(e){}
+    const r=window.TopolineaRemoteV132;
+    if(r){
+      try{ if(typeof r.unsubscribeRoom==='function') r.unsubscribeRoom(); }catch(e){}
+      r.unsubscribeRoom=null;
+      r.currentRoomCode=null;
+      r.role=null;
+      r.team=null;
+      r.slot=null;
+      r.roster={};
+      r.startedApplied=false;
+      r.applyingRemote=false;
+      r.lastMoveApplied=0;
+      r.currentGameId=null;
+      r.lastRoomSnapshot=null;
+      r.pausedByPresence=false;
+      r.absenceStartByPlayer={};
+    }
+    try{ localStorage.removeItem('topolineaLastRoomCode'); localStorage.removeItem('topolineaLastRoomRole'); }catch(e){}
+    clearRoomQuery();
+    setLocalMode();
+    clearRemoteUi();
+  }
+
+  function applyVisibility(){
+    updateVersionBadge();
+    const mode=window.__topolineaMatchType || $('matchType')?.value || 'local';
+    const r=window.TopolineaRemoteV132 || {};
+    const isRemote=mode==='remote';
+    const hostReady=isRemote && r.role==='host' && !!r.currentRoomCode;
+    const prehost=isRemote && !hostReady;
+    document.body.classList.toggle('v188-remote-prehost', prehost);
+    document.body.classList.toggle('v188-local-flow', !isRemote);
+    if(prehost){
+      document.querySelectorAll('#localConfigWrap,.v83-options-group,.v83-preview-group,.actions').forEach(el=>{el.style.display='none';});
+      const card=$('remoteComingCard');
+      if(card){ card.classList.add('active'); card.style.display='block'; card.setAttribute('aria-hidden','false'); }
+    }else if(!isRemote){
+      clearRemoteUi();
+    }else if(hostReady){
+      document.querySelectorAll('#localConfigWrap,.v83-options-group,.v83-preview-group,.actions').forEach(el=>{el.style.display='';});
+    }
+  }
+
+  function bindOnce(id, key, handler){
+    const el=$(id); if(!el || el.dataset[key]) return;
+    el.dataset[key]='1';
+    el.addEventListener('click', function(ev){
+      ev.preventDefault();
+      ev.stopImmediatePropagation();
+      handler(ev);
+    }, true);
+  }
+
+  function bind(){
+    // Inicio desde configuración: sale de cualquier sala y limpia ?room=...
+    bindOnce('configHomeBtnV179','v192Home',()=>{ leaveRemoteSessionLocalOnly(); showScreen('mainMenuScreen'); });
+
+    // Botón superior en partida: vuelve a configuración. No limpia sala, porque no es Inicio.
+    const back=$('backBtn');
+    if(back){
+      back.textContent='Volver';
+      if(!back.dataset.v192Back){
+        back.dataset.v192Back='1';
+        back.addEventListener('click',ev=>{
+          ev.preventDefault();
+          ev.stopImmediatePropagation();
+          try{ if(typeof stopClock==='function') stopClock(); }catch(e){}
+          showScreen('startScreen');
+        },true);
+      }
+    }
+
+    // Elegir Local desde el menú: también sale de sala y limpia la URL compartida.
+    bindOnce('playLocalBtnV177','v192Local',()=>{ leaveRemoteSessionLocalOnly(); showScreen('startScreen'); });
+
+    // Elegir Remoto: conserva flujo remoto.
+    bindOnce('playRemoteBtnV177','v192Remote',()=>{
+      const match=$('matchType'); if(match) match.value='remote';
+      window.__topolineaMatchType='remote';
+      try{ window.setTopolineaFlowV132?.('remote'); }catch(e){}
+      showScreen('startScreen');
+      setTimeout(applyVisibility,50);
+      setTimeout(applyVisibility,500);
+    });
+
+    ['createRoomBtnV132','joinRoomBtnV132','startRemoteRoomBtnV133','joinTeamABtnV136','joinTeamBBtnV136'].forEach(id=>{
+      const el=$(id); if(el && !el.dataset.v192After){
+        el.dataset.v192After='1';
+        el.addEventListener('click',()=>{setTimeout(applyVisibility,250);setTimeout(applyVisibility,1200);},true);
+      }
+    });
+  }
+
+  function init(){ bind(); updateVersionBadge(); applyVisibility(); }
+  if(document.readyState==='loading') document.addEventListener('DOMContentLoaded',init); else init();
+  setTimeout(init,400);
+  setTimeout(init,1500);
+  setInterval(()=>{updateVersionBadge();},2500);
+})();
+</script>
+
 </body>
 </html>
