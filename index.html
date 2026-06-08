@@ -7665,6 +7665,15 @@ body.v183-local-entry #remoteComingCard{
 </section>
 
     <div id="localConfigWrap">
+      <section class="config-section v236-cpu-level-section" id="cpuLevelSectionV235" aria-hidden="true">
+        <div class="section-title">🤖 Nivel CPU</div>
+        <select id="cpuLevelSelectV235" class="v236-cpu-select" aria-label="Nivel de la CPU">
+          <option value="beginner" selected>Principiante</option>
+          <option value="intermediate" disabled>Intermedio (próximamente)</option>
+          <option value="advanced" disabled>Avanzado (próximamente)</option>
+          <option value="master" disabled>Maestro (próximamente)</option>
+        </select>
+      </section>
       <section class="config-section" id="surfaceConfigSection">
       <div class="section-title">Superficie</div>
 
@@ -18021,12 +18030,12 @@ body.v232-solo-config #v83OptionsContent{
 
 
 
-<style id="v234-visual-stability-style">
-/* ===== v234: estabilización definitiva de rótulos visuales ===== */
+<style id="v236-visual-stability-style">
+/* ===== v236: estabilización definitiva de rótulos visuales ===== */
 [id^="versionMarkerV"]{
   display:none !important;
 }
-#versionMarkerV234{
+#versionMarkerV237{
   display:block !important;
   position:fixed;
   right:8px;
@@ -18041,17 +18050,17 @@ body.v232-solo-config #v83OptionsContent{
   opacity:.75;
   pointer-events:none;
 }
-body.v234-solo-config #configModeLabelV179{
+body.v236-solo-config #configModeLabelV179{
   color:#facc15 !important;
   font-weight:1000 !important;
 }
 </style>
 
-<script id="v234-solitario-visual-stability-js">
+<script id="v236-solitario-visual-stability-js">
 (function(){
   'use strict';
-  const VERSION='v234';
-  const BUILD='topolinea-v234_solitario_visual_stability';
+  const VERSION='v237';
+  const BUILD='topolinea-v237_single_version_source';
   const $=(id)=>document.getElementById(id);
 
   function isSolo(){
@@ -18060,12 +18069,12 @@ body.v234-solo-config #configModeLabelV179{
 
   function ensureBadge(){
     document.querySelectorAll('[id^="versionMarkerV"]').forEach(el=>{
-      if(el.id!=='versionMarkerV234') el.remove();
+      if(el.id!=='versionMarkerV237') el.remove();
     });
-    let b=$('versionMarkerV234');
+    let b=$('versionMarkerV237');
     if(!b){
       b=document.createElement('div');
-      b.id='versionMarkerV234';
+      b.id='versionMarkerV237';
       document.body.appendChild(b);
     }
     if(b.textContent!==VERSION) b.textContent=VERSION;
@@ -18075,7 +18084,7 @@ body.v234-solo-config #configModeLabelV179{
 
   function stableSoloLabels(){
     const solo=isSolo();
-    document.body.classList.toggle('v234-solo-config', solo);
+    document.body.classList.toggle('v236-solo-config', solo);
     if(!solo) return;
 
     const label=$('configModeLabelV179');
@@ -18109,8 +18118,8 @@ body.v234-solo-config #configModeLabelV179{
 
   function observeLabel(){
     const label=$('configModeLabelV179');
-    if(!label || label.dataset.v234Observed) return;
-    label.dataset.v234Observed='1';
+    if(!label || label.dataset.v236Observed) return;
+    label.dataset.v236Observed='1';
     const mo=new MutationObserver(()=>{ if(isSolo()) stableSoloLabels(); });
     mo.observe(label,{childList:true,characterData:true,subtree:true});
   }
@@ -18126,6 +18135,171 @@ body.v234-solo-config #configModeLabelV179{
   setTimeout(init,400);
   setTimeout(init,1200);
   setInterval(()=>{ tick(); observeLabel(); },100);
+})();
+</script>
+
+
+
+<style id="v236-cpu-level-style">
+/* ===== v236: selector de nivel CPU solo en modo Solitario ===== */
+.v236-cpu-level-section{
+  display:none !important;
+}
+body.v236-solo-config .v236-cpu-level-section{
+  display:block !important;
+  border-color:rgba(250,204,21,.28) !important;
+  background:
+    radial-gradient(circle at top left, rgba(250,204,21,.10), transparent 42%),
+    radial-gradient(circle at bottom right, rgba(34,211,238,.08), transparent 44%),
+    rgba(15,23,42,.78) !important;
+}
+.v236-cpu-select{
+  width:100%;
+  min-height:46px;
+  border-radius:15px;
+  border:1px solid rgba(250,204,21,.34);
+  background:
+    linear-gradient(135deg, rgba(250,204,21,.10), rgba(34,211,238,.06)),
+    rgba(2,6,23,.86);
+  color:#f8fafc;
+  font-weight:950;
+  padding:10px 12px;
+}
+.v236-cpu-select option:disabled{
+  color:#64748b;
+}
+</style>
+
+<script id="v236-cpu-level-js">
+(function(){
+  'use strict';
+  const VERSION='v237';
+  const BUILD='topolinea-v237_single_version_source';
+  const $=(id)=>document.getElementById(id);
+
+  function isSolo(){
+    return window.__topolineaMatchType==='solo' || $('matchType')?.value==='solo' || !!window.TopolineaSoloV230?.enabled;
+  }
+
+  function ensureBadge(){
+    document.querySelectorAll('[id^="versionMarkerV"]').forEach(el=>{
+      if(el.id!=='versionMarkerV237') el.remove();
+    });
+    let b=$('versionMarkerV237');
+    if(!b){
+      b=document.createElement('div');
+      b.id='versionMarkerV237';
+      document.body.appendChild(b);
+    }
+    b.textContent=VERSION;
+    const build=$('buildVersionMarkerV194');
+    if(build) build.textContent=BUILD;
+  }
+
+  function ensureSoloOption(){
+    const match=$('matchType');
+    if(match && !Array.from(match.options).some(o=>o.value==='solo')){
+      const opt=document.createElement('option');
+      opt.value='solo';
+      opt.textContent='Solitario';
+      match.appendChild(opt);
+    }
+  }
+
+  function syncCpuLevel(){
+    const solo=isSolo();
+    document.body.classList.toggle('v236-solo-config', solo);
+    const section=$('cpuLevelSectionV235');
+    if(section){
+      section.hidden=!solo;
+      section.setAttribute('aria-hidden', solo ? 'false' : 'true');
+    }
+    const select=$('cpuLevelSelectV235');
+    if(select && select.value!=='beginner') select.value='beginner';
+    window.TopolineaCpuLevelV235='beginner';
+  }
+
+  function stableSoloLabels(){
+    if(!isSolo()) return;
+    const label=$('configModeLabelV179');
+    if(label && label.textContent!=='Modo solitario · vs CPU') label.textContent='Modo solitario · vs CPU';
+    const start=$('startBtn');
+    if(start && start.textContent!=='Iniciar solitario') start.textContent='Iniciar solitario';
+  }
+
+  function tick(){
+    ensureSoloOption();
+    ensureBadge();
+    syncCpuLevel();
+    stableSoloLabels();
+  }
+
+  function init(){
+    tick();
+    const select=$('cpuLevelSelectV235');
+    if(select && !select.dataset.v236Bound){
+      select.dataset.v236Bound='1';
+      select.addEventListener('change',()=>{ select.value='beginner'; window.TopolineaCpuLevelV235='beginner'; });
+    }
+  }
+
+  if(document.readyState==='loading') document.addEventListener('DOMContentLoaded',init);
+  else init();
+  setTimeout(init,100);
+  setTimeout(init,500);
+  setTimeout(init,1200);
+  setInterval(tick,250);
+})();
+</script>
+
+
+<!-- v237: fuente única de versión.
+     Para futuras versiones, cambiar SOLO TOPOLINEA_APP_VERSION y TOPOLINEA_APP_BUILD en este bloque final. -->
+<style id="v237-single-version-source-style">
+[id^="versionMarkerV"]{display:none!important;visibility:hidden!important;opacity:0!important;}
+#versionMarkerV237{
+  display:block!important;
+  visibility:visible!important;
+  opacity:.75!important;
+  position:fixed!important;
+  right:8px!important;
+  bottom:8px!important;
+  z-index:999999!important;
+  background:#111827!important;
+  color:#facc15!important;
+  border:1px solid #facc15!important;
+  border-radius:999px!important;
+  padding:4px 8px!important;
+  font:700 11px system-ui!important;
+  pointer-events:none!important;
+}
+</style>
+<script id="v237-single-version-source-js">
+(function(){
+  'use strict';
+  window.TOPOLINEA_APP_VERSION = 'v237';
+  window.TOPOLINEA_APP_BUILD = 'topolinea-v237_single_version_source';
+  const MARKER_ID = 'versionMarkerV237';
+  function ensureSingleVersionMarker(){
+    document.querySelectorAll('[id^="versionMarkerV"]').forEach(function(el){
+      if(el.id !== MARKER_ID) el.remove();
+    });
+    let b = document.getElementById(MARKER_ID);
+    if(!b){
+      b = document.createElement('div');
+      b.id = MARKER_ID;
+      document.body.appendChild(b);
+    }
+    b.textContent = window.TOPOLINEA_APP_VERSION;
+    const build = document.getElementById('buildVersionMarkerV194');
+    if(build) build.textContent = window.TOPOLINEA_APP_BUILD;
+  }
+  if(document.readyState === 'loading') document.addEventListener('DOMContentLoaded', ensureSingleVersionMarker);
+  else ensureSingleVersionMarker();
+  setTimeout(ensureSingleVersionMarker, 50);
+  setTimeout(ensureSingleVersionMarker, 300);
+  setTimeout(ensureSingleVersionMarker, 1200);
+  setInterval(ensureSingleVersionMarker, 500);
 })();
 </script>
 
