@@ -7021,21 +7021,21 @@ body.v183-local-entry #remoteComingCard{
     <div class="v177-shell">
       <div class="v177-card">
         <h2 class="v177-title">Jugar</h2>
-        <p class="v177-lead">Elige el flujo de partida. Local es siempre 1 vs 1; remoto infiere el formato según quienes entren a cada equipo.</p>
+        <p class="v177-lead">Selecciona un modo de juego.</p>
         <div class="v177-actions">
           <button type="button" id="playLocalBtnV177" class="v177-big-btn">
-            <strong>Local</strong>
+            <strong>🕹️ Local</strong>
             <span>1 vs 1 en este dispositivo.</span>
           </button>
           <button type="button" id="playRemoteBtnV177" class="v177-big-btn">
-            <strong>Remoto</strong>
+            <strong>🌐 Remoto</strong>
             <span>Crear sala o unirse con código.</span>
           </button>
         </div>
         <div class="v177-actions" style="grid-template-columns:1fr;margin-top:12px;">
           <button type="button" class="v177-big-btn v177-disabled" disabled>
             <strong>Entrenamiento</strong>
-            <span>Modo contra bot para una versión futura.</span>
+            <span>En construcción.</span>
           </button>
         </div>
         <div class="v177-secondary-row">
@@ -7049,7 +7049,7 @@ body.v183-local-entry #remoteComingCard{
     <div class="v177-shell">
       <div class="v177-card">
         <h2 class="v177-title">Visualizar superficies</h2>
-        <p class="v177-lead">Esta sección queda separada del modo partida. Próximo paso: editor libre de posiciones, validación y visualización 3D por superficie.</p>
+        <p class="v177-lead">Construye o escanea una posición y observa cómo cambia sobre distintas superficies topológicas.<br><span style="opacity:.82">En construcción.</span></p>
         <div class="v177-secondary-row">
           <button type="button" id="surfacesBackBtnV177" class="secondary v177-back">Volver al menú</button>
         </div>
@@ -7091,18 +7091,9 @@ body.v183-local-entry #remoteComingCard{
 
       
 <div class="card config-card">
-  <div class="config-head">
-    <h2>Configuración inicial</h2>
-    <p>Define el tablero, la superficie y el ritmo de la partida.</p>
-  </div>
 <div class="config-grid v83-config-grid">
 
   <section class="config-group-card v83-primary-config">
-    <div class="group-head">
-      <h3>Configuración de partida</h3>
-      <p>Elige cómo jugar, la superficie y el tamaño del tablero.</p>
-    </div>
-
     <section class="play-flow-card" id="playFlowCard">
   <div class="section-title">¿Cómo quieres jugar?</div>
   <div class="play-flow-options">
@@ -7134,7 +7125,7 @@ body.v183-local-entry #remoteComingCard{
     <button type="button" id="reconnectRoomBtnV141" class="secondary reconnect-room-btn-v141">Volver a la partida</button>
   </div>
 
-  <div id="remoteStatusV132" class="remote-status-v132">Firebase listo para probar conexión.</div>
+  <div id="remoteStatusV132" class="remote-status-v132">Listo para crear o unirse a una sala.</div>
 
   <div id="remoteRoomInfoV132" class="remote-room-info-v132" hidden>
     <div><strong>Sala:</strong> <span id="remoteRoomCodeV132">—</span></div>
@@ -14057,7 +14048,7 @@ if(lastRoom){
     const link=$('remoteRoomLinkV132');
     if(link) link.value='';
     const status=$('remoteStatusV132');
-    if(status){ status.textContent='Firebase listo para probar conexión.'; status.removeAttribute('data-kind'); }
+    if(status){ status.textContent='Listo para crear o unirse a una sala.'; status.removeAttribute('data-kind'); }
     const card=$('remoteComingCard');
     if(card){ card.classList.remove('active'); card.style.display='none'; card.setAttribute('aria-hidden','true'); }
     document.body.classList.remove('v188-remote-prehost');
@@ -14264,7 +14255,7 @@ if(lastRoom){
     const join=$('joinRoomCodeV132'); if(join) join.value='';
     const link=$('remoteRoomLinkV132'); if(link) link.value='';
     const status=$('remoteStatusV132');
-    if(status){ status.textContent='Firebase listo para probar conexión.'; status.removeAttribute('data-kind'); }
+    if(status){ status.textContent='Listo para crear o unirse a una sala.'; status.removeAttribute('data-kind'); }
     const label=$('configModeLabelV179'); if(label) label.textContent='Modo local';
   }
 
@@ -14716,7 +14707,7 @@ import { ref, update, serverTimestamp } from "https://www.gstatic.com/firebasejs
     ['remoteRoomLinkV132','joinRoomCodeV132'].forEach(id=>{const el=$(id); if(el) el.value='';});
     ['remoteTeamAListV136','remoteTeamBListV136','remoteUnassignedListV155'].forEach(id=>{const el=$(id); if(el) el.innerHTML='—';});
     const count=$('remoteRoomCountV155'); if(count) count.textContent='0';
-    const status=$('remoteStatusV132'); if(status){ status.textContent='Firebase listo para probar conexión.'; status.removeAttribute('data-kind'); }
+    const status=$('remoteStatusV132'); if(status){ status.textContent='Listo para crear o unirse a una sala.'; status.removeAttribute('data-kind'); }
   }
 
   function resetRemoteObject(){
@@ -14860,5 +14851,333 @@ import { ref, update, serverTimestamp } from "https://www.gstatic.com/firebasejs
 })();
 </script>
 
+
+
+<style id="v196-options-collapsed-board-style">
+  #versionMarkerV195{display:none!important;visibility:hidden!important;opacity:0!important;}
+</style>
+<script id="v196-options-collapsed-board-js">
+(function(){
+  'use strict';
+  const VERSION='v196';
+  const $=(id)=>document.getElementById(id);
+
+  function versionBadge(){
+    ['versionMarkerV191','versionMarkerV192','versionMarkerV193','versionMarkerV194','versionMarkerV195','v190DiagPanel','v188VisibleMarker'].forEach(id=>$(id)?.remove());
+    let b=$('versionMarkerV196');
+    if(!b){
+      b=document.createElement('div');
+      b.id='versionMarkerV196';
+      b.style.cssText='position:fixed;right:8px;bottom:8px;z-index:99999;background:#111827;color:#facc15;border:1px solid #facc15;border-radius:999px;padding:4px 8px;font:700 11px system-ui;opacity:.75;pointer-events:none';
+      document.body.appendChild(b);
+    }
+    b.textContent=VERSION;
+  }
+
+  function findBoardSection(){
+    const sections=[...document.querySelectorAll('section.config-section')];
+    return sections.find(sec=>{
+      const title=sec.querySelector('.section-title');
+      return title && title.textContent.trim().toLowerCase()==='tablero';
+    });
+  }
+
+  function moveBoardIntoOptions(){
+    const content=$('v83OptionsContent');
+    const boardSec=findBoardSection();
+    if(!content || !boardSec) return;
+    if(boardSec.parentElement!==content){
+      content.insertBefore(boardSec, content.firstElementChild || null);
+    }
+    const small=document.querySelector('#v83OptionsToggle small');
+    if(small) small.textContent='Tablero · Bloqueos · Tiempo';
+  }
+
+  function collapseOptions(){
+    const btn=$('v83OptionsToggle');
+    const content=$('v83OptionsContent');
+    if(!btn || !content) return;
+    btn.classList.remove('expanded');
+    btn.setAttribute('aria-expanded','false');
+    content.classList.add('collapsed');
+  }
+
+  function normalizeOptions(){
+    versionBadge();
+    moveBoardIntoOptions();
+    collapseOptions();
+  }
+
+  function scheduleNormalize(){
+    normalizeOptions();
+    setTimeout(normalizeOptions,60);
+    setTimeout(normalizeOptions,250);
+    setTimeout(normalizeOptions,800);
+  }
+
+  function patchClicks(){
+    // Después de navegar a Local, Remoto o volver a configuración, mantener opciones cerradas por defecto.
+    ['playLocalBtnV177','playRemoteBtnV177','backBtn','configHomeBtnV179','remoteCreateRoomBtnV132','remoteJoinRoomBtnV132','remoteStartBtnV133'].forEach(id=>{
+      const el=$(id);
+      if(!el || el.dataset.v196Normalize==='1') return;
+      el.dataset.v196Normalize='1';
+      el.addEventListener('click',()=>scheduleNormalize(),false);
+    });
+  }
+
+  function init(){
+    scheduleNormalize();
+    patchClicks();
+  }
+
+  if(document.readyState==='loading') document.addEventListener('DOMContentLoaded',init); else init();
+  setTimeout(init,500);
+  setTimeout(init,1600);
+  setInterval(()=>{versionBadge(); patchClicks();},1500);
+})();
+</script>
+
+
+
+<style id="v198-text-cleanup-style">
+  #versionMarkerV196{display:none!important;visibility:hidden!important;opacity:0!important;}
+  #v83OptionsContent[data-v198-default-closed="1"]{
+    max-height:0 !important;
+    opacity:0 !important;
+    margin-top:0 !important;
+    overflow:hidden !important;
+  }
+  #v83OptionsToggle:not(.expanded) .v83-chevron{ transform:none !important; }
+</style>
+<script id="v198-text-cleanup-js">
+(function(){
+  'use strict';
+  const VERSION='v198';
+  const $=(id)=>document.getElementById(id);
+
+  function versionBadge(){
+    ['versionMarkerV191','versionMarkerV192','versionMarkerV193','versionMarkerV194','versionMarkerV195','versionMarkerV196','versionMarkerV197','v190DiagPanel','v188VisibleMarker'].forEach(id=>$(id)?.remove());
+    let b=$('versionMarkerV198');
+    if(!b){
+      b=document.createElement('div');
+      b.id='versionMarkerV198';
+      b.style.cssText='position:fixed;right:8px;bottom:8px;z-index:99999;background:#111827;color:#facc15;border:1px solid #facc15;border-radius:999px;padding:4px 8px;font:700 11px system-ui;opacity:.75;pointer-events:none';
+      document.body.appendChild(b);
+    }
+    b.textContent=VERSION;
+  }
+
+  function forceOptionsClosed(){
+    const btn=$('v83OptionsToggle');
+    const content=$('v83OptionsContent');
+    if(!btn || !content) return;
+    btn.classList.remove('expanded');
+    btn.setAttribute('aria-expanded','false');
+    content.classList.add('collapsed');
+    content.setAttribute('data-v198-default-closed','1');
+  }
+
+  function allowUserToggle(){
+    const btn=$('v83OptionsToggle');
+    const content=$('v83OptionsContent');
+    if(!btn || !content || btn.dataset.v198TogglePatched==='1') return;
+    btn.dataset.v198TogglePatched='1';
+    btn.addEventListener('click',()=>{
+      // Desde el primer toque del usuario, deja de forzar el cierre por defecto.
+      content.removeAttribute('data-v198-default-closed');
+    }, true);
+  }
+
+  function closeAfterNavigation(){
+    // Cierra al entrar a Configuración desde Local/Remoto o al volver desde una partida.
+    const ids=['playLocalBtnV177','playRemoteBtnV177','remoteCreateRoomBtnV132','remoteJoinRoomBtnV132','remoteStartBtnV133','backBtn','configHomeBtnV179'];
+    ids.forEach(id=>{
+      const el=$(id);
+      if(!el || el.dataset.v198ClosePatched==='1') return;
+      el.dataset.v198ClosePatched='1';
+      el.addEventListener('click',()=>{
+        setTimeout(forceOptionsClosed,0);
+        setTimeout(forceOptionsClosed,80);
+        setTimeout(forceOptionsClosed,300);
+      }, false);
+    });
+  }
+
+  function init(){
+    versionBadge();
+    allowUserToggle();
+    closeAfterNavigation();
+    forceOptionsClosed();
+    setTimeout(forceOptionsClosed,100);
+    setTimeout(forceOptionsClosed,500);
+    setTimeout(forceOptionsClosed,1200);
+  }
+
+  if(document.readyState==='loading') document.addEventListener('DOMContentLoaded',init); else init();
+  setTimeout(init,700);
+  setInterval(()=>{versionBadge(); allowUserToggle(); closeAfterNavigation();},1500);
+})();
+</script>
+
+
+
+<style id="v200-remote-empty-cleanup-style">
+  #versionMarkerV198{display:none!important;visibility:hidden!important;opacity:0!important;}
+  #remoteRoomInfoV132.v200-empty-hidden{
+    display:none !important;
+    visibility:hidden !important;
+  }
+</style>
+<script id="v200-remote-empty-cleanup-js">
+(function(){
+  'use strict';
+  const VERSION='v201';
+  const $=(id)=>document.getElementById(id);
+
+  function versionBadge(){
+    ['versionMarkerV191','versionMarkerV192','versionMarkerV193','versionMarkerV194','versionMarkerV195','versionMarkerV196','versionMarkerV197','versionMarkerV198','v190DiagPanel','v188VisibleMarker'].forEach(id=>$(id)?.remove());
+    let b=$('versionMarkerV201');
+    if(!b){
+      b=document.createElement('div');
+      b.id='versionMarkerV201';
+      b.style.cssText='position:fixed;right:8px;bottom:8px;z-index:99999;background:#111827;color:#facc15;border:1px solid #facc15;border-radius:999px;padding:4px 8px;font:700 11px system-ui;opacity:.75;pointer-events:none';
+      document.body.appendChild(b);
+    }
+    b.textContent=VERSION;
+  }
+
+  function clean(value){
+    return String(value ?? '').trim().toUpperCase();
+  }
+
+  function textOf(id){
+    const el=$(id);
+    return clean(el ? el.textContent : '');
+  }
+
+  function valueOf(id){
+    const el=$(id);
+    return clean(el ? el.value : '');
+  }
+
+  function looksLikeRoomCode(value){
+    const v=clean(value);
+    if(!v || v==='—' || v==='-' || v==='--') return false;
+    return /^[A-Z0-9]{4,10}$/.test(v);
+  }
+
+  function hasActualRemoteRoom(){
+    // No basta con estar en modo remoto ni con que la URL conserve ?room=...
+    // El panel solo se muestra si la app ya tiene un código de sala real
+    // en el DOM, en el estado remoto o en el link generado/copiadble.
+    const r=window.TopolineaRemoteV132 || {};
+    const domCode=textOf('remoteRoomCodeV132');
+    const stateCode=clean(r.currentRoomCode || r.roomCode || r.activeRoomCode || '');
+    const link=valueOf('remoteRoomLinkV132');
+
+    if(looksLikeRoomCode(domCode)) return true;
+    if(looksLikeRoomCode(stateCode)) return true;
+    if(/[?&]room=[A-Z0-9]{4,10}\b/.test(link)) return true;
+
+    return false;
+  }
+
+  function applyRemoteEmptyCleanup(){
+    versionBadge();
+    const info=$('remoteRoomInfoV132');
+    if(!info) return;
+
+    const hasRoom=hasActualRemoteRoom();
+
+    if(hasRoom){
+      // Hay sala real: dejamos visible el panel informativo.
+      if(info.classList.contains('v200-empty-hidden')) info.classList.remove('v200-empty-hidden');
+      if(info.hasAttribute('hidden')) info.hidden=false;
+      info.setAttribute('data-v200-room-visible','1');
+    }else{
+      // No hay sala: ocultamos únicamente el panel vacío de Sala/Estado/Jugadores.
+      if(!info.classList.contains('v200-empty-hidden')) info.classList.add('v200-empty-hidden');
+      if(!info.hasAttribute('hidden')) info.hidden=true;
+      info.removeAttribute('data-v200-room-visible');
+    }
+  }
+
+  function observeRemotePanel(){
+    const card=$('remoteComingCard');
+    const info=$('remoteRoomInfoV132');
+    if(!card || !info || card.dataset.v200Observed==='1') return;
+    card.dataset.v200Observed='1';
+
+    let scheduled=false;
+    const schedule=()=>{
+      if(scheduled) return;
+      scheduled=true;
+      requestAnimationFrame(()=>{
+        scheduled=false;
+        applyRemoteEmptyCleanup();
+      });
+    };
+
+    const obs=new MutationObserver(schedule);
+    obs.observe(card,{subtree:true,childList:true,attributes:true,characterData:true,attributeFilter:['hidden','class','style','value']});
+  }
+
+  function patchRemoteButtons(){
+    // Reaplicar después de acciones remotas. No cambia sus funciones.
+    ['playRemoteBtnV177','createRoomBtnV132','joinRoomBtnV132','reconnectRoomBtnV141','configHomeBtnV179','playLocalBtnV177'].forEach(id=>{
+      const el=$(id);
+      if(!el || el.dataset.v200RemoteCleanup==='1') return;
+      el.dataset.v200RemoteCleanup='1';
+      el.addEventListener('click',()=>{
+        setTimeout(applyRemoteEmptyCleanup,0);
+        setTimeout(applyRemoteEmptyCleanup,120);
+        setTimeout(applyRemoteEmptyCleanup,600);
+        setTimeout(applyRemoteEmptyCleanup,1400);
+      },false);
+    });
+  }
+
+  function init(){
+    versionBadge();
+    observeRemotePanel();
+    patchRemoteButtons();
+    applyRemoteEmptyCleanup();
+    setTimeout(applyRemoteEmptyCleanup,100);
+    setTimeout(applyRemoteEmptyCleanup,500);
+    setTimeout(applyRemoteEmptyCleanup,1200);
+  }
+
+  if(document.readyState==='loading') document.addEventListener('DOMContentLoaded',init); else init();
+  setTimeout(init,700);
+  setInterval(()=>{versionBadge(); patchRemoteButtons(); applyRemoteEmptyCleanup();},1500);
+})();
+</script>
+
+
+<style id="v201-text-minimalism-style">
+/* v201: se mantiene sin cambios funcionales. */
+body.v200-remote-config-active #startScreen .config-head p{
+  display:none !important;
+}
+</style>
+<script id="v201-text-minimalism-js">
+(function(){
+  function detectRemoteConfigV200(){
+    try{
+      var start=document.getElementById('startScreen');
+      var remoteCard=document.getElementById('remoteRoomCardV132');
+      var isStartActive=start && start.classList.contains('active');
+      var remoteVisible=remoteCard && getComputedStyle(remoteCard).display !== 'none';
+      document.body.classList.toggle('v200-remote-config-active', !!(isStartActive && remoteVisible));
+    }catch(e){}
+  }
+  document.addEventListener('DOMContentLoaded', function(){
+    detectRemoteConfigV200();
+    document.addEventListener('click', function(){ setTimeout(detectRemoteConfigV200, 80); }, true);
+    document.addEventListener('input', function(){ setTimeout(detectRemoteConfigV200, 80); }, true);
+    setInterval(detectRemoteConfigV200, 700);
+  });
+})();
+</script>
 </body>
 </html>
