@@ -6996,7 +6996,7 @@ body.v183-local-entry #remoteComingCard{
 </head>
 <body data-v191="1">
   <div id="versionMarkerV191" style="position:fixed;right:8px;bottom:8px;z-index:99999;background:#111827;color:#facc15;border:1px solid #facc15;border-radius:999px;padding:4px 8px;font:700 11px system-ui;opacity:.75;pointer-events:none">v191</div>
-  <div id="buildVersionMarkerV191" style="display:none">topolinea-history-v191-clean-remote-link-fix</div>
+  <div id="buildVersionMarkerV194" style="display:none">topolinea-history-v194-remote-abandon-fix</div>
   <section id="mainMenuScreen" class="screen active">
     <div class="v177-shell">
       <div class="v177-card">
@@ -14337,6 +14337,292 @@ if(lastRoom){
   setTimeout(init,300);
   setTimeout(init,1200);
   setTimeout(init,2500);
+})();
+</script>
+
+
+
+<style id="v194-remote-abandon-style">
+  #versionMarkerV191,#versionMarkerV192,#versionMarkerV193,#v190DiagPanel,#v188VisibleMarker{
+    display:none!important;visibility:hidden!important;opacity:0!important;
+  }
+  .remote-abandoned-note-v194{
+    margin-top:10px;
+    padding:12px 14px;
+    border-radius:16px;
+    background:rgba(248,113,113,.13);
+    border:1px solid rgba(248,113,113,.35);
+    color:#fecaca;
+    font-weight:950;
+    line-height:1.3;
+  }
+</style>
+<script type="module" id="v194-remote-abandon-js">
+import { ref, update, serverTimestamp } from "https://www.gstatic.com/firebasejs/11.10.0/firebase-database.js";
+
+(function(){
+  'use strict';
+  const VERSION='v194';
+  const $=(id)=>document.getElementById(id);
+  const screens=['mainMenuScreen','playModeScreen','surfaceViewerIntroScreen','startScreen','gameScreen'];
+  let handledAbandonKey='';
+
+  function versionBadge(){
+    ['versionMarkerV191','versionMarkerV192','versionMarkerV193','v190DiagPanel','v188VisibleMarker'].forEach(id=>$(id)?.remove());
+    let b=$('versionMarkerV194');
+    if(!b){
+      b=document.createElement('div');
+      b.id='versionMarkerV194';
+      b.style.cssText='position:fixed;right:8px;bottom:8px;z-index:99999;background:#111827;color:#facc15;border:1px solid #facc15;border-radius:999px;padding:4px 8px;font:700 11px system-ui;opacity:.75;pointer-events:none';
+      document.body.appendChild(b);
+    }
+    b.textContent=VERSION;
+  }
+
+  function showScreen(id){
+    screens.forEach(name=>$(name)?.classList.toggle('active',name===id));
+    try{window.scrollTo({top:0,left:0,behavior:'auto'});}catch(e){}
+  }
+
+  function isRemoteActive(){
+    const r=window.TopolineaRemoteV132 || {};
+    const mode=window.__topolineaMatchType || $('matchType')?.value || 'local';
+    return mode==='remote' || !!r.currentRoomCode || !!new URLSearchParams(location.search).get('room');
+  }
+
+  function currentCode(){
+    const r=window.TopolineaRemoteV132 || {};
+    return r.currentRoomCode || $('remoteRoomCodeV132')?.textContent?.trim() || $('joinRoomCodeV132')?.value?.trim().toUpperCase() || '';
+  }
+
+  function cleanRoomUrl(){
+    try{
+      const url=new URL(window.location.href);
+      if(url.searchParams.has('room')){
+        url.searchParams.delete('room');
+        const q=url.searchParams.toString();
+        const clean=url.pathname+(q?'?'+q:'')+url.hash;
+        history.replaceState({},document.title,clean);
+      }
+    }catch(e){}
+  }
+
+  function clearRemoteStorage(){
+    try{
+      localStorage.removeItem('topolineaLastRoomCode');
+      localStorage.removeItem('topolineaLastRoomRole');
+      localStorage.removeItem('topolineaRemoteRoom');
+    }catch(e){}
+  }
+
+  function setStatus(msg,kind='info'){
+    const el=$('remoteStatusV132');
+    if(el){ el.textContent=msg; el.dataset.kind=kind; }
+  }
+
+  function resetRemoteObject(){
+    const r=window.TopolineaRemoteV132;
+    if(!r) return;
+    try{ if(typeof r.unsubscribeRoom==='function') r.unsubscribeRoom(); }catch(e){}
+    try{ if(typeof r.unsubRoom==='function') r.unsubRoom(); }catch(e){}
+    r.unsubscribeRoom=null;
+    r.unsubRoom=null;
+    r.currentRoomCode='';
+    r.roomCode='';
+    r.role='';
+    r.team='';
+    r.slot='';
+    r.roster={};
+    r.startedApplied=false;
+    r.applyingRemote=false;
+    r.lastMoveApplied=0;
+    r.currentGameId=null;
+    r.lastRoomSnapshot=null;
+    r.pausedByPresence=false;
+    r.absenceStartByPlayer={};
+  }
+
+  function clearRemoteUi(){
+    const info=$('remoteRoomInfoV132');
+    if(info) info.hidden=true;
+    ['remoteRoomCodeV132','remoteRoomStateV132'].forEach(id=>{const el=$(id); if(el) el.textContent='—';});
+    ['remoteRoomLinkV132','joinRoomCodeV132'].forEach(id=>{const el=$(id); if(el) el.value='';});
+    ['remoteTeamAListV136','remoteTeamBListV136','remoteUnassignedListV155'].forEach(id=>{const el=$(id); if(el) el.innerHTML='—';});
+    const count=$('remoteRoomCountV155'); if(count) count.textContent='0';
+    const card=$('remoteComingCard');
+    if(card){
+      card.classList.remove('active');
+      card.style.display='none';
+      card.setAttribute('aria-hidden','true');
+      card.querySelectorAll('.remote-abandoned-note-v194').forEach(n=>n.remove());
+    }
+    document.body.classList.remove('v188-remote-prehost');
+    document.body.classList.add('v188-local-flow');
+  }
+
+  function forceLocalConfigVisible(){
+    const match=$('matchType'); if(match) match.value='local';
+    window.__topolineaMatchType='local';
+    try{ window.setTopolineaFlowV132?.('local'); }catch(e){}
+    ['localConfigWrap','surfaceConfigSection'].forEach(id=>{
+      const el=$(id); if(el){ el.style.display=''; el.hidden=false; el.classList.remove('remote-hidden','remote-guest-hidden-v145','remote-guest-hidden-v155','v193-hidden'); }
+    });
+    document.querySelectorAll('.v83-primary-config,.v83-options-group,.v83-preview-group,.v83-options-content,.config-preview-card,.actions,.config-section').forEach(el=>{
+      el.style.display=''; el.hidden=false;
+      el.classList.remove('remote-hidden','remote-guest-hidden-v145','remote-guest-hidden-v155','v193-hidden','collapsed');
+    });
+    const label=$('configModeLabelV179'); if(label) label.textContent='Modo local';
+  }
+
+  function fullLocalReset(){
+    try{ if(typeof stopClock==='function') stopClock(); }catch(e){}
+    resetRemoteObject();
+    clearRemoteStorage();
+    cleanRoomUrl();
+    forceLocalConfigVisible();
+    clearRemoteUi();
+  }
+
+  async function notifyRoomAbandoned(reason='left_to_home'){
+    const r=window.TopolineaRemoteV132 || {};
+    const code=currentCode();
+    const db=r.db;
+    if(!db || !code) return false;
+
+    const playerId=r.playerId || '';
+    const me=(r.lastRoomSnapshot?.players || {})[playerId] || {};
+    const name=me.name || localStorage.getItem('topolineaPlayerName') || 'Jugador';
+    const status=r.lastRoomSnapshot?.status || 'unknown';
+    const gameId=Number(r.lastRoomSnapshot?.gameId || r.currentGameId || 0);
+
+    const updates={
+      status:'abandoned',
+      endedReason:'player_abandoned',
+      abandonedReason:reason,
+      abandonedBy:playerId || null,
+      abandonedByName:name,
+      abandonedByRole:r.role || me.role || null,
+      abandonedByTeam:r.team || me.team || null,
+      abandonedBySlot:r.slot || me.slot || null,
+      abandonedAt:serverTimestamp(),
+      updatedAt:serverTimestamp(),
+      clock:null
+    };
+    if(gameId) updates.gameId=gameId;
+    if(playerId){
+      updates[`players/${playerId}/presence/state`]='left';
+      updates[`players/${playerId}/presence/leftAtClient`]=Date.now();
+      updates[`players/${playerId}/presence/leftReason`]=reason;
+    }
+    try{
+      await update(ref(db,'rooms/'+code), updates);
+      return true;
+    }catch(err){
+      console.error('[v194] No se pudo notificar abandono:',err);
+      return false;
+    }
+  }
+
+  async function confirmLeaveToHome(){
+    const code=currentCode();
+    if(code && isRemoteActive()){
+      const ok=confirm('Vas a abandonar la sala remota.\n\nLa partida finalizará para todos los jugadores de esta sala.\n\n¿Confirmar?');
+      if(!ok) return;
+      await notifyRoomAbandoned('left_to_home');
+    }
+    fullLocalReset();
+    showScreen('mainMenuScreen');
+  }
+
+  async function chooseLocalClean(){
+    const code=currentCode();
+    if(code && isRemoteActive()){
+      const ok=confirm('Estás dentro de una sala remota.\n\nSi continúas a modo Local, abandonarás la sala y la partida remota finalizará.\n\n¿Confirmar?');
+      if(!ok) return;
+      await notifyRoomAbandoned('left_to_local');
+    }
+    fullLocalReset();
+    showScreen('startScreen');
+    setTimeout(forceLocalConfigVisible,50);
+    setTimeout(forceLocalConfigVisible,300);
+  }
+
+  function gameBackToConfig(){
+    try{ if(typeof stopClock==='function') stopClock(); }catch(e){}
+    showScreen('startScreen');
+  }
+
+  function chooseRemote(){
+    const match=$('matchType'); if(match) match.value='remote';
+    window.__topolineaMatchType='remote';
+    try{ window.setTopolineaFlowV132?.('remote'); }catch(e){}
+    showScreen('startScreen');
+  }
+
+  function replaceButton(id, handler, text){
+    const old=$(id);
+    if(!old || old.dataset.v194Replaced==='1') return;
+    const neo=old.cloneNode(true);
+    neo.dataset.v194Replaced='1';
+    if(text) neo.textContent=text;
+    neo.addEventListener('click',function(ev){
+      ev.preventDefault(); ev.stopPropagation(); ev.stopImmediatePropagation();
+      Promise.resolve(handler(ev)).catch(err=>console.error('[v194 button]',err));
+      return false;
+    },true);
+    old.replaceWith(neo);
+  }
+
+  function showRemoteAbandonedMessage(room){
+    const card=$('remoteComingCard');
+    if(card){
+      card.classList.add('active');
+      card.style.display='block';
+      card.setAttribute('aria-hidden','false');
+      let note=card.querySelector('.remote-abandoned-note-v194');
+      if(!note){
+        note=document.createElement('div');
+        note.className='remote-abandoned-note-v194';
+        card.prepend(note);
+      }
+      const name=room?.abandonedByName || 'Un jugador';
+      note.textContent=`${name} abandonó la sala. La partida remota finalizó.`;
+    }
+    setStatus(`${room?.abandonedByName || 'Un jugador'} abandonó la sala. La partida remota finalizó.`, 'error');
+  }
+
+  function detectOpponentAbandon(){
+    const r=window.TopolineaRemoteV132 || {};
+    const room=r.lastRoomSnapshot;
+    if(!room || room.status!=='abandoned') return;
+    const key=(r.currentRoomCode||room.code||'')+'_'+(room.gameId||0)+'_'+(room.abandonedAt||room.abandonedBy||'x');
+    if(key===handledAbandonKey) return;
+    handledAbandonKey=key;
+
+    const myId=r.playerId || '';
+    const abandonedBy=room.abandonedBy || '';
+    if(abandonedBy && myId && abandonedBy===myId) return;
+
+    try{ if(typeof stopClock==='function') stopClock(); }catch(e){}
+    showRemoteAbandonedMessage(room);
+    alert(`${room.abandonedByName || 'Un jugador'} abandonó la sala.\n\nLa partida remota finalizó.`);
+    fullLocalReset();
+    showScreen('mainMenuScreen');
+  }
+
+  function patch(){
+    versionBadge();
+    replaceButton('configHomeBtnV179', confirmLeaveToHome, 'Inicio');
+    replaceButton('playLocalBtnV177', chooseLocalClean);
+    replaceButton('backBtn', gameBackToConfig, 'Volver');
+    replaceButton('playRemoteBtnV177', chooseRemote);
+  }
+
+  function init(){ patch(); versionBadge(); }
+  if(document.readyState==='loading') document.addEventListener('DOMContentLoaded',init); else init();
+  setTimeout(init,300);
+  setTimeout(init,1200);
+  setInterval(()=>{ versionBadge(); detectOpponentAbandon(); },1000);
 })();
 </script>
 
