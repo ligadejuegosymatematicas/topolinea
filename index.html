@@ -7,6 +7,7 @@
   <meta http-equiv="Expires" content="0" />
   <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
   <title>Topolínea</title>
+  <!-- v258: destacado de jugadas del último turno del equipo -->
   <meta name="description" content="Topolínea: conecta fichas sobre tableros con identificaciones topológicas." />
   <meta name="theme-color" content="#0f172a" />
   <meta name="application-name" content="Topolínea" />
@@ -679,6 +680,43 @@
       content:"";position:absolute;width:22%;height:22%;border-radius:999px;
       background:rgba(255,255,255,.88);
     }
+
+/* ===== v258: destacar jugadas del último turno del equipo ===== */
+.turn-last{
+  outline:3px solid rgba(250,204,21,.86);
+  outline-offset:4px;
+  box-shadow:
+    0 0 0 6px rgba(250,204,21,.18),
+    0 0 22px rgba(250,204,21,.62),
+    inset 0 -5px 8px rgba(0,0,0,.22),
+    0 4px 10px rgba(0,0,0,.34) !important;
+  animation:turnLastPulseV258 1.15s ease-in-out infinite;
+  z-index:4;
+}
+.turn-last::before{
+  content:"";
+  position:absolute;
+  inset:-8px;
+  border-radius:999px;
+  border:2px solid rgba(255,255,255,.62);
+  pointer-events:none;
+}
+.turn-last.last{
+  outline-color:rgba(255,255,255,.96);
+  box-shadow:
+    0 0 0 6px rgba(250,204,21,.30),
+    0 0 26px rgba(250,204,21,.78),
+    inset 0 -5px 8px rgba(0,0,0,.22),
+    0 4px 10px rgba(0,0,0,.34) !important;
+}
+@keyframes turnLastPulseV258{
+  0%,100%{filter:brightness(1);}
+  50%{filter:brightness(1.16);}
+}
+@media (prefers-reduced-motion: reduce){
+  .turn-last{animation:none !important;}
+}
+
     .win{z-index:3}
     /* Historial rediseñado abajo del tablero. */
 
@@ -8033,6 +8071,8 @@ const state = {
   winner:null,
   winningCells:[],
   history:[],
+  turnHighlightTeam:null,
+  turnHighlightMoves:[],
   blockMode:false,
   clockOn:true,
   timeA:600, timeB:600,
@@ -8106,7 +8146,10 @@ function empty(){
   state.board=Array.from({length:state.rows},()=>Array(state.cols).fill(0));
   state.blocked=new Set();
   state.moveIndex=0; state.gameOver=false; state.winner=null; state.winningCells=[];
-  state.history=[]; state.blockMode=false; state.paused=false; state.lastTick=null;
+  state.history=[];
+  state.turnHighlightTeam=null;
+  state.turnHighlightMoves=[];
+  state.blockMode=false; state.paused=false; state.lastTick=null;
 }
 function applyBlocks(){
   const p=$("blockPreset").value;
@@ -8398,6 +8441,23 @@ function full(){
     if(!state.board[r][c]&&!state.blocked.has(key(r,c)))return false;
   return true;
 }
+
+// v258: destaca todas las jugadas del turno actual del equipo.
+// Al entrar un equipo nuevo y hacer su primera jugada, se limpian los destacados del equipo anterior.
+function registerTurnHighlightMoveV258(actor,r,c){
+  if(!state.turnHighlightMoves) state.turnHighlightMoves=[];
+  if(state.turnHighlightTeam !== actor.team){
+    state.turnHighlightTeam = actor.team;
+    state.turnHighlightMoves = [];
+  }
+  state.turnHighlightMoves.push({r,c,team:actor.team});
+}
+
+function isTurnHighlightedMoveV258(r,c){
+  return Array.isArray(state.turnHighlightMoves) &&
+    state.turnHighlightMoves.some(m => m && m.r===r && m.c===c);
+}
+
 function applyMoveLocal(r,c,remoteMeta=null){
   if(state.gameOver)return false;
   const k=key(r,c);
@@ -8405,6 +8465,7 @@ function applyMoveLocal(r,c,remoteMeta=null){
   const actor=currentActor();
   state.board[r][c]=actor.team;
   state.history.push({r,c,team:actor.team,name:actor.name});
+  registerTurnHighlightMoveV258(actor,r,c);
   state.moveIndex++;
   const win=checkWin(r,c);
   if(win){state.gameOver=true;state.winner=actor.team;state.winningCells=win; stopClock();}
@@ -8585,6 +8646,7 @@ function render(){
       else if(state.board[r][c]){
         const s=document.createElement("div");
         s.className="stone "+(state.board[r][c]==="A"?"pA":"pB");
+        if(isTurnHighlightedMoveV258(r,c))s.classList.add("turn-last");
         if(last&&last.r===r&&last.c===c)s.classList.add("last");
         d.appendChild(s);
       }
@@ -9033,21 +9095,41 @@ function v227CellUV(r,c){
 }
 function v227ContinuousLineUV(line){
   if(!line || line.length<2) return [];
+
+  /* v262:
+     En superficies con identificación invertida izquierda-derecha
+     (Möbius y Klein), cruzar ese borde no solo traslada u; también refleja v.
+     Antes se hacía solo u -> u±1, por eso los vértices ganadores aparecían
+     destacados, pero la curva amarilla podía elegir el segmento largo/interior
+     y no seguir la arista unidad visible en la superficie. */
   const pts=[];
   let prev=v227CellUV(line[0][0],line[0][1]);
   pts.push(prev);
+
   for(let i=1;i<line.length;i++){
     const raw=v227CellUV(line[i][0],line[i][1]);
-    let u=raw.u, v=raw.v;
-    if(state.wrapH){
-      const candidates=[raw.u-1, raw.u, raw.u+1];
-      u=candidates.reduce((best,x)=>Math.abs(x-prev.u)<Math.abs(best-prev.u)?x:best, raw.u);
+
+    const uOffsets = state.wrapH ? [-1,0,1] : [0];
+    const vOffsets = state.wrapV ? [-1,0,1] : [0];
+    let best=null;
+    let bestD=Infinity;
+
+    for(const du of uOffsets){
+      const reflected = !!(state.flipH && state.wrapH && Math.abs(du % 2)===1);
+      const baseU = raw.u + du;
+      const baseV = reflected ? 1 - raw.v : raw.v;
+
+      for(const dv of vOffsets){
+        const cand={u:baseU, v:baseV + dv};
+        const d=Math.hypot(cand.u-prev.u, cand.v-prev.v);
+        if(d<bestD){
+          bestD=d;
+          best=cand;
+        }
+      }
     }
-    if(state.wrapV){
-      const candidates=[raw.v-1, raw.v, raw.v+1];
-      v=candidates.reduce((best,x)=>Math.abs(x-prev.v)<Math.abs(best-prev.v)?x:best, raw.v);
-    }
-    const cur={u,v};
+
+    const cur=best || raw;
     pts.push(cur);
     prev=cur;
   }
@@ -9072,21 +9154,23 @@ function v227DrawWinningLines3D(projector, drawCurveFn){
   const lines=v227GetWinningLines();
   if(!lines.length) return;
   for(const line of lines){
-    const pts=v227ProjectedWinningCurve(line, projector, 16);
+    const pts=v227ProjectedWinningCurve(line, projector, 28);
     if(pts.length<2) continue;
     drawCurveFn(pts,{
       stroke:"rgba(250,204,21,.96)",
       width:8.0,
       alpha:.94,
       shadow:"rgba(250,204,21,.55)",
-      blur:16
+      blur:16,
+      smooth:true
     });
     drawCurveFn(pts,{
       stroke:"rgba(255,255,255,.72)",
       width:1.55,
       alpha:.84,
       shadow:"transparent",
-      blur:0
+      blur:0,
+      smooth:true
     });
   }
 }
@@ -9157,6 +9241,31 @@ function drawKleinVisual(W,H){
 
   function K(u,v){ return proj(K3(u,v)); }
 
+  // v262: para dibujar líneas ganadoras en Klein, las coordenadas continuas
+  // pueden salir de [0,1] al cruzar la identificación invertida izquierda-derecha.
+  // La superficie visual de Klein usa una parametrización por tramos que no es
+  // periódica fuera de [0,1]; por eso la curva amarilla podía no pasar por las
+  // fichas ganadoras aunque los vértices sí estuvieran marcados. Normalizamos
+  // u aplicando la inversión vertical correspondiente, de modo que la línea
+  // use la misma representación visual que las fichas.
+  function KLine(u,v){
+    let uu=u;
+    let vv=v;
+    let guard=0;
+    while(uu < 0 && guard++ < 8){
+      uu += 1;
+      vv = 1 - vv;
+    }
+    guard=0;
+    while(uu > 1 && guard++ < 8){
+      uu -= 1;
+      vv = 1 - vv;
+    }
+    vv = ((vv % 1) + 1) % 1;
+    uu = Math.max(0, Math.min(1, uu));
+    return K(uu,vv);
+  }
+
   function drawCurve(points, style){
     if(points.length<2) return;
     ctx.save();
@@ -9168,7 +9277,18 @@ function drawKleinVisual(W,H){
     ctx.shadowColor=style.shadow || "transparent";
     ctx.shadowBlur=style.blur || 0;
     ctx.beginPath();
-    points.forEach((p,i)=>i?ctx.lineTo(p.x,p.y):ctx.moveTo(p.x,p.y));
+    if(style.smooth && points.length > 3){
+      ctx.moveTo(points[0].x, points[0].y);
+      for(let i=1;i<points.length-2;i++){
+        const xc=(points[i].x + points[i+1].x)/2;
+        const yc=(points[i].y + points[i+1].y)/2;
+        ctx.quadraticCurveTo(points[i].x, points[i].y, xc, yc);
+      }
+      const n=points.length;
+      ctx.quadraticCurveTo(points[n-2].x, points[n-2].y, points[n-1].x, points[n-1].y);
+    }else{
+      points.forEach((p,i)=>i?ctx.lineTo(p.x,p.y):ctx.moveTo(p.x,p.y));
+    }
     ctx.stroke();
     ctx.restore();
   }
@@ -9357,7 +9477,7 @@ function drawKleinVisual(W,H){
 
   // 7) Líneas ganadoras sobre la botella de Klein (v227).
   // Se interpolan en coordenadas paramétricas para respetar costuras normales e invertidas.
-  v227DrawWinningLines3D((u,v)=>K(u,v), drawCurve);
+  v227DrawWinningLines3D((u,v)=>KLine(u,v), drawCurve);
 
   // 8) Fichas.
   const stones=[];
@@ -9480,10 +9600,21 @@ function draw3d(){
     ctx.shadowBlur = style.blur || 0;
 
     ctx.beginPath();
-    points.forEach((p,i)=>{
-      if(i===0) ctx.moveTo(p.x,p.y);
-      else ctx.lineTo(p.x,p.y);
-    });
+    if(style.smooth && points.length > 3){
+      ctx.moveTo(points[0].x, points[0].y);
+      for(let i=1;i<points.length-2;i++){
+        const xc=(points[i].x + points[i+1].x)/2;
+        const yc=(points[i].y + points[i+1].y)/2;
+        ctx.quadraticCurveTo(points[i].x, points[i].y, xc, yc);
+      }
+      const n=points.length;
+      ctx.quadraticCurveTo(points[n-2].x, points[n-2].y, points[n-1].x, points[n-1].y);
+    }else{
+      points.forEach((p,i)=>{
+        if(i===0) ctx.moveTo(p.x,p.y);
+        else ctx.lineTo(p.x,p.y);
+      });
+    }
     ctx.stroke();
 
     ctx.restore();
@@ -18603,8 +18734,8 @@ body.v236-solo-config .v236-cpu-level-section{
 <script id="v245-authoritative-mode-router-js">
 (function(){
   'use strict';
-  const VERSION='v257';
-  const BUILD='topolinea-v257_width_locked_board_and_play_title';
+  const VERSION='v262';
+  const BUILD='topolinea-v262_curva_suave_parametrica_3d';
   const screens=['mainMenuScreen','playModeScreen','surfaceViewerIntroScreen','startScreen','gameScreen'];
   const $=id=>document.getElementById(id);
   let desiredMode = window.__topolineaDesiredModeV243 || (($('matchType')?.value==='solo')?'solo':(($('matchType')?.value==='remote')?'remote':'local'));
@@ -18909,8 +19040,8 @@ body.v243-mode-solo #configModeLabelV179::after{content:'Modo Solitario' !import
 <script id="v248-adaptive-viewer-board-js">
 (function(){
   'use strict';
-  const VERSION='v257';
-  const BUILD='topolinea-v257_width_locked_board_and_play_title';
+  const VERSION='v262';
+  const BUILD='topolinea-v262_curva_suave_parametrica_3d';
   const $=id=>document.getElementById(id);
 
   function setBadge(){
@@ -19027,8 +19158,8 @@ body.v243-mode-solo #configModeLabelV179::after{content:'Modo Solitario' !import
 <script id="v256-adaptive-game-board-js">
 (function(){
   'use strict';
-  const VERSION='v257';
-  const BUILD='topolinea-v257_width_locked_board_and_play_title';
+  const VERSION='v262';
+  const BUILD='topolinea-v262_curva_suave_parametrica_3d';
   const $=id=>document.getElementById(id);
   function setVersionBadge(){
     window.TOPOLINEA_APP_VERSION=VERSION;
@@ -19079,25 +19210,423 @@ body.v243-mode-solo #configModeLabelV179::after{content:'Modo Solitario' !import
 }
 </style>
 
-<script id="v257-final-version-badge">
+
+
+<style id="v265-mode-router-hard-fix-style">
+/* ===== v263: corrección de arrastre Local/Remoto/Solitario ===== */
+body.v265-mode-local #remoteComingCard,
+body.v265-mode-solo #remoteComingCard{
+  display:none !important;
+}
+body.v265-mode-local #localConfigWrap,
+body.v265-mode-local #surfaceConfigSection,
+body.v265-mode-local .v83-options-group,
+body.v265-mode-local .v83-preview-group,
+body.v265-mode-local .actions,
+body.v265-mode-solo #localConfigWrap,
+body.v265-mode-solo #surfaceConfigSection,
+body.v265-mode-solo .v83-options-group,
+body.v265-mode-solo .v83-preview-group,
+body.v265-mode-solo .actions{
+  display:block !important;
+}
+body.v265-mode-remote #remoteComingCard{
+  display:block !important;
+}
+body.v265-mode-remote:not(.v183-remote-host):not(.v182-remote-host) #localConfigWrap,
+body.v265-mode-remote:not(.v183-remote-host):not(.v182-remote-host) #surfaceConfigSection,
+body.v265-mode-remote:not(.v183-remote-host):not(.v182-remote-host) .v83-options-group,
+body.v265-mode-remote:not(.v183-remote-host):not(.v182-remote-host) .v83-preview-group,
+body.v265-mode-remote:not(.v183-remote-host):not(.v182-remote-host) .actions{
+  display:none !important;
+}
+</style>
+<script id="v265-mode-router-hard-fix-js">
 (function(){
   'use strict';
-  const VERSION='v257';
-  const BUILD='topolinea-v257_width_locked_board_and_play_title';
-  function badge(){
+  const VERSION='v266';
+  const BUILD='topolinea-v266_badge_version_aislado';
+  const screens=['mainMenuScreen','playModeScreen','surfaceViewerIntroScreen','startScreen','gameScreen'];
+  const $=id=>document.getElementById(id);
+  let desiredMode = window.__topolineaDesiredModeV263 || window.__topolineaDesiredModeV243 || 'local';
+  let lockUntil = 0;
+
+  function ensureSoloOption(){
+    const m=$('matchType');
+    if(m && !Array.from(m.options).some(o=>o.value==='solo')){
+      const opt=document.createElement('option');
+      opt.value='solo'; opt.textContent='Solitario';
+      m.appendChild(opt);
+    }
+  }
+
+  function showScreen(id){
+    try{
+      screens.forEach(name=>$(name)?.classList.toggle('active',name===id));
+      window.scrollTo({top:0,left:0,behavior:'auto'});
+    }catch(e){}
+  }
+
+  function setBadge(){
     window.TOPOLINEA_APP_VERSION=VERSION;
     window.TOPOLINEA_APP_BUILD=BUILD;
-    const build=document.getElementById('buildVersionMarkerV194');
-    if(build) build.textContent=BUILD;
-    let b=document.getElementById('topolineaVersionBadge');
+    const build=$('buildVersionMarkerV194'); if(build) build.textContent=BUILD;
+    document.querySelectorAll('[id^="versionMarkerV"],#v190DiagPanel,#v188VisibleMarker').forEach(el=>{
+      if(el.id!=='topolineaVersionBadge'){
+        el.style.display='none'; el.style.visibility='hidden'; el.style.opacity='0';
+      }
+    });
+    let b=$('topolineaVersionBadge');
     if(!b){ b=document.createElement('div'); b.id='topolineaVersionBadge'; document.body.appendChild(b); }
     b.textContent=VERSION;
     b.style.cssText='position:fixed;right:8px;bottom:8px;z-index:2147483647;background:rgba(15,23,42,.72);color:#facc15;border:1px solid rgba(250,204,21,.70);border-radius:999px;padding:4px 8px;font:800 11px system-ui;opacity:.9;pointer-events:none;display:block;visibility:visible;';
   }
-  if(document.readyState==='loading') document.addEventListener('DOMContentLoaded',badge); else badge();
-  setTimeout(badge,100); setTimeout(badge,500); setInterval(badge,1500);
+
+  function setVisible(el,on){
+    if(!el) return;
+    el.hidden=false;
+    el.style.display=on?'':'none';
+    el.setAttribute('aria-hidden',on?'false':'true');
+    if(on){
+      el.classList.remove('remote-hidden','remote-guest-hidden-v145','remote-guest-hidden-v155','v193-hidden');
+    }
+  }
+
+  function clearModeClasses(){
+    document.body.classList.remove(
+      'v230-solo-flow','v231-solo-config','v232-solo-config','v236-solo-config',
+      'v188-remote-prehost','v242-remote-entry-now','v182-remote-entry','v183-remote-entry',
+      'v182-local-entry','v183-local-entry','v243-mode-local','v243-mode-remote','v243-mode-solo',
+      'v265-mode-local','v265-mode-remote','v265-mode-solo'
+    );
+  }
+
+  function syncMode(mode){
+    ensureSoloOption();
+    desiredMode = (mode==='remote'||mode==='solo') ? mode : 'local';
+    window.__topolineaDesiredModeV263=desiredMode;
+    window.__topolineaDesiredModeV243=desiredMode;
+    window.__topolineaMatchType=desiredMode;
+    const match=$('matchType'); if(match) match.value=desiredMode;
+
+    clearModeClasses();
+    document.body.classList.add('v265-mode-'+desiredMode,'v243-mode-'+desiredMode);
+
+    const remote=$('remoteComingCard');
+    const label=$('configModeLabelV179');
+    const start=$('startBtn');
+    const note=$('v231SoloConfigNote') || $('v230CpuNote');
+
+    if(desiredMode==='remote'){
+      document.body.classList.add('v188-remote-prehost');
+      setVisible(remote,true); remote?.classList.add('active');
+      ['localConfigWrap','surfaceConfigSection'].forEach(id=>setVisible($(id),false));
+      document.querySelectorAll('.v83-options-group,.v83-preview-group,.actions').forEach(el=>setVisible(el,false));
+      if(label) label.textContent='Modo Remoto';
+      if(start) start.textContent='Iniciar partida';
+      document.querySelectorAll('#v231SoloConfigNote,#v230CpuNote').forEach(el=>el.hidden=true);
+      if(window.TopolineaSoloV230){ try{ window.TopolineaSoloV230.enabled=false; }catch(e){} }
+      try{ window.setTopolineaFlowV132?.('remote'); }catch(e){}
+      window.__topolineaMatchType='remote'; if(match) match.value='remote';
+    }else{
+      document.body.classList.add('v188-local-flow');
+      setVisible(remote,false); remote?.classList.remove('active');
+      ['localConfigWrap','surfaceConfigSection'].forEach(id=>setVisible($(id),true));
+      document.querySelectorAll('.v83-options-group,.v83-preview-group,.config-preview-card,.actions').forEach(el=>setVisible(el,true));
+      try{ window.setTopolineaFlowV132?.('local'); }catch(e){}
+      if(desiredMode==='solo'){
+        document.body.classList.add('v230-solo-flow','v231-solo-config','v232-solo-config','v236-solo-config');
+        window.__topolineaMatchType='solo'; if(match) match.value='solo';
+        if(window.TopolineaSoloV230){ try{ window.TopolineaSoloV230.enabled=true; }catch(e){} }
+        if(label) label.textContent='Modo Solitario';
+        if(start) start.textContent='Iniciar solitario';
+        document.querySelectorAll('#v231SoloConfigNote,#v230CpuNote').forEach(el=>el.hidden=false);
+        const players=$('playersMode'); if(players) players.value='1v1';
+        document.querySelectorAll('[data-select="playersMode"]').forEach(btn=>btn.classList.toggle('active',btn.dataset.value==='1v1'));
+      }else{
+        window.__topolineaMatchType='local'; if(match) match.value='local';
+        if(window.TopolineaSoloV230){ try{ window.TopolineaSoloV230.enabled=false; }catch(e){} }
+        if(label) label.textContent='Modo Local';
+        if(start) start.textContent='Iniciar partida';
+        document.querySelectorAll('#v231SoloConfigNote,#v230CpuNote').forEach(el=>el.hidden=true);
+      }
+    }
+    setBadge();
+    try{ window.dispatchEvent(new Event('resize')); }catch(e){}
+  }
+
+  function enter(mode){
+    lockUntil=Date.now()+3600;
+    syncMode(mode);
+    showScreen('startScreen');
+    [0,60,140,300,700,1200,2200,3300].forEach(ms=>setTimeout(()=>syncMode(desiredMode),ms));
+  }
+
+  function modeFromTarget(t){
+    if(!t?.closest) return null;
+    if(t.closest('#playLocalBtnV177')) return 'local';
+    if(t.closest('#playRemoteBtnV177')) return 'remote';
+    if(t.closest('#playSoloBtnV230')) return 'solo';
+    return null;
+  }
+
+  function earlyMark(ev){
+    const mode=modeFromTarget(ev.target);
+    if(!mode) return;
+    desiredMode=mode;
+    window.__topolineaDesiredModeV263=mode;
+    window.__topolineaDesiredModeV243=mode;
+    if(mode!=='solo'){
+      window.__topolineaMatchType=mode;
+      const match=$('matchType'); if(match) match.value=mode;
+      if(window.TopolineaSoloV230){ try{ window.TopolineaSoloV230.enabled=false; }catch(e){} }
+    }
+  }
+
+  ['pointerdown','touchstart','mousedown'].forEach(type=>{
+    document.addEventListener(type,earlyMark,{capture:true,passive:true});
+  });
+
+  // Captura autoritativa: evita que listeners heredados del botón equivocado arrastren Solitario.
+  document.addEventListener('click',function(ev){
+    const mode=modeFromTarget(ev.target);
+    if(!mode) return;
+    ev.preventDefault();
+    ev.stopPropagation();
+    ev.stopImmediatePropagation();
+    enter(mode);
+    return false;
+  },true);
+
+  function init(){
+    setBadge(); ensureSoloOption();
+    if($('startScreen')?.classList.contains('active')) syncMode(desiredMode);
+  }
+  if(document.readyState==='loading') document.addEventListener('DOMContentLoaded',init); else init();
+  [80,300,900,1800].forEach(ms=>setTimeout(init,ms));
+  setInterval(()=>{
+    setBadge();
+    if(Date.now()<lockUntil || $('startScreen')?.classList.contains('active')) syncMode(desiredMode);
+  },220);
+  window.TopolineaModeRouterV263={enter,syncMode,get mode(){return desiredMode;}};
 })();
 </script>
 
+
+<!-- v265: badge de versión fijo, mínimo y no bloqueante.
+     Regla futura: mantener este bloque al final del body; no usar MutationObserver;
+     no poner el badge dentro de pantallas/modales; no duplicar ids versionMarkerV*. -->
+<style id="v265-version-badge-fixed-style">
+  [id^="versionMarkerV"],
+  #v190DiagPanel,
+  #v188VisibleMarker{
+    display:none!important;
+    visibility:hidden!important;
+    opacity:0!important;
+  }
+  #topolineaVersionBadge{
+    position:fixed!important;
+    right:calc(10px + env(safe-area-inset-right, 0px))!important;
+    bottom:calc(10px + env(safe-area-inset-bottom, 0px))!important;
+    z-index:2147483647!important;
+    display:block!important;
+    visibility:visible!important;
+    opacity:.96!important;
+    pointer-events:none!important;
+    user-select:none!important;
+    padding:5px 10px!important;
+    border-radius:999px!important;
+    background:rgba(15,23,42,.88)!important;
+    color:#facc15!important;
+    border:1px solid rgba(250,204,21,.78)!important;
+    box-shadow:0 0 12px rgba(0,0,0,.35)!important;
+    font:900 12px/1.1 system-ui,-apple-system,BlinkMacSystemFont,"Segoe UI",sans-serif!important;
+  }
+</style>
+<script id="v265-version-badge-fixed-js">
+(function(){
+  'use strict';
+  const VERSION='v266';
+  const BUILD='topolinea-v266_badge_version_aislado';
+  const BADGE_ID='topolineaVersionBadge';
+
+  // Si existe el observador experimental de v264, se desconecta para no bloquear la UI.
+  try{
+    if(window.__topolineaVersionBadgeObserverV264){
+      window.__topolineaVersionBadgeObserverV264.disconnect();
+      window.__topolineaVersionBadgeObserverV264=null;
+    }
+    if(window.__topolineaVersionBadgeIntervalV264){
+      clearInterval(window.__topolineaVersionBadgeIntervalV264);
+      window.__topolineaVersionBadgeIntervalV264=null;
+    }
+  }catch(e){}
+
+  function ensureBadge(){
+    window.TOPOLINEA_APP_VERSION=VERSION;
+    window.TOPOLINEA_APP_BUILD=BUILD;
+    const build=document.getElementById('buildVersionMarkerV194');
+    if(build) build.textContent=BUILD;
+
+    document.querySelectorAll('[id^="versionMarkerV"],#v190DiagPanel,#v188VisibleMarker').forEach(el=>{
+      el.style.setProperty('display','none','important');
+      el.style.setProperty('visibility','hidden','important');
+      el.style.setProperty('opacity','0','important');
+      el.setAttribute('aria-hidden','true');
+    });
+
+    let badge=document.getElementById(BADGE_ID);
+    if(!badge){
+      badge=document.createElement('div');
+      badge.id=BADGE_ID;
+    }
+    if(badge.parentElement!==document.body) document.body.appendChild(badge);
+    badge.textContent=VERSION;
+    badge.setAttribute('aria-hidden','true');
+  }
+
+  if(document.readyState==='loading') document.addEventListener('DOMContentLoaded',ensureBadge,{once:true});
+  else ensureBadge();
+  [0,80,250,700,1500,3000].forEach(ms=>setTimeout(ensureBadge,ms));
+  clearInterval(window.__topolineaVersionBadgeIntervalV265);
+  window.__topolineaVersionBadgeIntervalV265=setInterval(ensureBadge,1500);
+})();
+</script>
+
+
+
+<!-- v266: ÚNICO PUNTO EDITABLE PARA EL BADGE DE VERSIÓN.
+     En futuras versiones cambiar SOLO estas dos constantes:
+       const TOPOLINEA_VERSION_BADGE_TEXT = 'v266';
+       const TOPOLINEA_VERSION_BUILD_TEXT = 'topolinea-v266_badge_version_aislado';
+     Regla: este bloque debe quedar al final del body. No usar MutationObserver. No usar intervalos.
+     El texto visible se dibuja con ::after desde data-version, para que scripts antiguos no lo muevan ni lo cambien. -->
+<style id="topolinea-version-badge-final-style-v266">
+  [id^="versionMarkerV"],
+  #v190DiagPanel,
+  #v188VisibleMarker{
+    display:none !important;
+    visibility:hidden !important;
+    opacity:0 !important;
+  }
+
+  #topolineaVersionBadge{
+    position:fixed !important;
+    right:calc(10px + env(safe-area-inset-right, 0px)) !important;
+    bottom:calc(10px + env(safe-area-inset-bottom, 0px)) !important;
+    left:auto !important;
+    top:auto !important;
+    transform:none !important;
+    translate:none !important;
+    margin:0 !important;
+    z-index:2147483647 !important;
+    display:block !important;
+    visibility:visible !important;
+    opacity:.96 !important;
+    pointer-events:none !important;
+    user-select:none !important;
+    box-sizing:border-box !important;
+    width:auto !important;
+    min-width:0 !important;
+    height:auto !important;
+    min-height:0 !important;
+    padding:0 !important;
+    border:0 !important;
+    background:transparent !important;
+    box-shadow:none !important;
+    color:transparent !important;
+    font-size:0 !important;
+    line-height:0 !important;
+    contain:layout style paint !important;
+  }
+
+  #topolineaVersionBadge::after{
+    content:attr(data-version) !important;
+    display:block !important;
+    padding:5px 10px !important;
+    border-radius:999px !important;
+    background:rgba(15,23,42,.90) !important;
+    color:#facc15 !important;
+    border:1px solid rgba(250,204,21,.78) !important;
+    box-shadow:0 0 12px rgba(0,0,0,.35) !important;
+    font:900 12px/1.1 system-ui,-apple-system,BlinkMacSystemFont,"Segoe UI",sans-serif !important;
+    letter-spacing:.01em !important;
+    white-space:nowrap !important;
+  }
+</style>
+<script id="topolinea-version-badge-final-js-v266">
+(function(){
+  'use strict';
+
+  // === EDITAR SOLO AQUÍ EN FUTURAS VERSIONES ===
+  const TOPOLINEA_VERSION_BADGE_TEXT = 'v266';
+  const TOPOLINEA_VERSION_BUILD_TEXT = 'topolinea-v266_badge_version_aislado';
+  // ==============================================
+
+  const BADGE_ID = 'topolineaVersionBadge';
+
+  function stopOldBadgeLoops(){
+    try{ clearInterval(window.__topolineaVersionBadgeIntervalV264); }catch(e){}
+    try{ clearInterval(window.__topolineaVersionBadgeIntervalV265); }catch(e){}
+    try{
+      if(window.__topolineaVersionBadgeObserverV264){
+        window.__topolineaVersionBadgeObserverV264.disconnect();
+        window.__topolineaVersionBadgeObserverV264 = null;
+      }
+    }catch(e){}
+  }
+
+  function ensureBadge(){
+    stopOldBadgeLoops();
+    window.TOPOLINEA_APP_VERSION = TOPOLINEA_VERSION_BADGE_TEXT;
+    window.TOPOLINEA_APP_BUILD = TOPOLINEA_VERSION_BUILD_TEXT;
+
+    const build = document.getElementById('buildVersionMarkerV194');
+    if(build) build.textContent = TOPOLINEA_VERSION_BUILD_TEXT;
+
+    document.querySelectorAll('[id^="versionMarkerV"],#v190DiagPanel,#v188VisibleMarker').forEach(function(el){
+      el.style.setProperty('display','none','important');
+      el.style.setProperty('visibility','hidden','important');
+      el.style.setProperty('opacity','0','important');
+      el.setAttribute('aria-hidden','true');
+    });
+
+    let badge = document.getElementById(BADGE_ID);
+    if(!badge){
+      badge = document.createElement('div');
+      badge.id = BADGE_ID;
+    }
+    if(badge.parentElement !== document.body) document.body.appendChild(badge);
+
+    // El texto visible NO depende de textContent: se muestra con ::after y data-version.
+    badge.textContent = '';
+    badge.dataset.version = TOPOLINEA_VERSION_BADGE_TEXT;
+    badge.setAttribute('aria-hidden','true');
+  }
+
+  if(document.readyState === 'loading'){
+    document.addEventListener('DOMContentLoaded', ensureBadge, {once:true});
+  }else{
+    ensureBadge();
+  }
+
+  // Refuerzos finitos para neutralizar timeouts heredados de versiones anteriores.
+  [0,50,120,250,500,900,1500,2500,3800,5200].forEach(function(ms){
+    setTimeout(ensureBadge, ms);
+  });
+
+  // Refuerzos por interacción, sin bucles permanentes.
+  ['click','pointerup','touchend','visibilitychange','resize','orientationchange','hashchange','popstate'].forEach(function(type){
+    window.addEventListener(type, function(){ setTimeout(ensureBadge, 0); }, true);
+    document.addEventListener(type, function(){ setTimeout(ensureBadge, 0); }, true);
+  });
+
+  window.TopolineaVersionBadge = {
+    version: TOPOLINEA_VERSION_BADGE_TEXT,
+    build: TOPOLINEA_VERSION_BUILD_TEXT,
+    refresh: ensureBadge
+  };
+})();
+</script>
 </body>
 </html>
