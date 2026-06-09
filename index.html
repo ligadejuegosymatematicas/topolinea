@@ -5170,8 +5170,8 @@ body[data-surface="torus"] .right-border{
 
 /* 2) Usar los límites reales creados por JS:
       - Plano: top/bottom/left/right
-      - Cilindro horizontal: top/bottom
-      - Cilindro vertical: left/right
+      - Cilindro I-D: top/bottom
+      - Cilindro S-I: left/right
       - Toro: ninguno
 */
 .board-limit{
@@ -7712,7 +7712,7 @@ body.v183-local-entry #remoteComingCard{
           <span class="surface-icon">◓</span>
           <span class="surface-main">Cilindro</span>
           <span class="surface-difficulty-v124">Modo intermedio</span>
-          <span class="surface-sub">Arriba ↔ abajo</span>
+          <span class="surface-sub">Superior ↔ inferior</span>
         </button>
 
         <button type="button" class="surface-choice" data-surface="torus">
@@ -7987,7 +7987,7 @@ body.v183-local-entry #remoteComingCard{
             <div class="legend-row-v43">
               <div class="legend-normal-horizontal-v103"><span class="legend-symbol cyan">◆</span> Identificación izquierda ↔ derecha</div>
               <div class="legend-mobius-v103"><span class="legend-symbol cyan">↓↑</span> Identificación invertida izquierda ↔ derecha</div>
-              <div class="legend-vertical-v107"><span class="legend-symbol magenta">✦</span> Identificación arriba ↔ abajo</div>
+              <div class="legend-vertical-v107"><span class="legend-symbol magenta">✦</span> Identificación superior ↔ inferior</div>
             </div>
           </div>
         </div>
@@ -8076,8 +8076,8 @@ function surfaceName(){
   if(state.surfaceType==="mobius") return "Cinta de Möbius";
   if(state.surfaceType==="klein") return "Botella de Klein";
   if(state.wrapH&&state.wrapV)return "Toro";
-  if(state.wrapH)return "Cilindro horizontal";
-  if(state.wrapV)return "Cilindro vertical";
+  if(state.wrapH)return "Cilindro I-D";
+  if(state.wrapV)return "Cilindro S-I";
   return "Plano";
 }
 function readConfig(){
@@ -8508,15 +8508,35 @@ function render(){
   const stack=$("boardStack");
   const area = document.querySelector(".board-area");
   const rect = area.getBoundingClientRect();
-  const extraW = 34*2 + 24*2 + 4*4 + 28;
-  const extraH = 34*2 + 24*2 + 4*4 + 28;
-  const availableW = Math.max(260, rect.width - extraW);
-  const availableH = Math.max(260, rect.height - extraH);
-  const sizeByW = Math.floor(availableW / state.cols);
-  const sizeByH = Math.floor(availableH / state.rows);
-  const size = Math.max(15, Math.min(54, sizeByW, sizeByH));
+  const areaStyle = getComputedStyle(area);
+  const padX = (parseFloat(areaStyle.paddingLeft)||0) + (parseFloat(areaStyle.paddingRight)||0);
+  const padY = (parseFloat(areaStyle.paddingTop)||0) + (parseFloat(areaStyle.paddingBottom)||0);
+  const usableW = Math.max(180, rect.width - padX - 2);
+  const usableH = Math.max(180, rect.height - padY - 2);
+
+  const narrow = window.innerWidth <= 520 || usableW <= 430;
+  const veryNarrow = window.innerWidth <= 390 || usableW <= 350;
+  let coord = veryNarrow ? 18 : (narrow ? 20 : 24);
+  let id = veryNarrow ? 22 : (narrow ? 26 : 34);
+  const gap = 4;
+
+  // v257: el tamaño del tablero se fija por ANCHO, no por altura.
+  // En móviles, la altura útil cambia cuando se oculta/muestra la barra del navegador;
+  // si el tamaño depende de esa altura, el tablero "crece" durante la partida.
+  let sizeByW = Math.floor((usableW - 2*coord - 2*id - 4*gap) / state.cols);
+  let size = Math.max(10, Math.min(sizeByW, narrow ? 42 : 54));
+
+  let totalW = state.cols*size + 2*coord + 2*id + 4*gap;
+  if(totalW > usableW){
+    coord = Math.max(16, Math.floor(coord*0.88));
+    id = Math.max(20, Math.floor(id*0.82));
+    sizeByW = Math.floor((usableW - 2*coord - 2*id - 4*gap) / state.cols);
+    size = Math.max(10, Math.min(size, sizeByW));
+  }
 
   stack.style.setProperty("--cell",size+"px");
+  stack.style.setProperty("--coord",coord+"px");
+  stack.style.setProperty("--id",id+"px");
   stack.style.setProperty("--rows",state.rows);
   stack.style.setProperty("--cols",state.cols);
 
@@ -9278,7 +9298,7 @@ function drawKleinVisual(W,H){
     alpha:.72
   });
 
-  // Blanco/plata: identificación normal arriba ↔ abajo.
+  // Blanco/plata: identificación normal superior ↔ inferior.
   const white=curveV(0);
   drawCurve(white,{
     stroke:"rgba(226,232,240,.88)",
@@ -9980,8 +10000,8 @@ function drawFlat(W,H){
     if(!note) return;
     let text = "Superficie: plano";
     if(h && v) text = "Superficie: toro";
-    else if(h) text = "Superficie: cilindro horizontal";
-    else if(v) text = "Superficie: cilindro vertical";
+    else if(h) text = "Superficie: cilindro I-D";
+    else if(v) text = "Superficie: cilindro S-I";
     note.textContent = text;
   }
 
@@ -10223,8 +10243,8 @@ function drawFlat(W,H){
     if(surfaceType==="mobius") return "Cinta de Möbius";
     if(surfaceType==="klein") return "Botella de Klein";
     if(h && v) return "Toro";
-    if(h) return "Cilindro horizontal";
-    if(v) return "Cilindro vertical";
+    if(h) return "Cilindro I-D";
+    if(v) return "Cilindro S-I";
     return "Plano";
   }
 
@@ -11478,8 +11498,8 @@ function drawFlat(W,H){
     if(note){
       const names={
         plane:"plano",
-        cylH:"cilindro horizontal",
-        cylV:"cilindro vertical",
+        cylH:"cilindro I-D",
+        cylV:"cilindro S-I",
         torus:"toro",
         mobius:"cinta de Möbius"
       };
@@ -11546,8 +11566,8 @@ function drawFlat(W,H){
   function labelFor(surface){
     return {
       plane:"Plano",
-      cylH:"Cilindro horizontal",
-      cylV:"Cilindro vertical",
+      cylH:"Cilindro I-D",
+      cylV:"Cilindro S-I",
       torus:"Toro",
       mobius:"Cinta de Möbius",
       klein:"Botella de Klein"
@@ -11616,7 +11636,7 @@ function drawFlat(W,H){
     ["wrapH","wrapV"].forEach(id=>{
       const el=document.getElementById(id);
       if(el) el.addEventListener("change",()=>{
-        // Si Möbius está activo, no recalcularlo como cilindro horizontal.
+        // Si Möbius está activo, no recalcularlo como cilindro I-D.
         if(window.__topolineaSurfaceType==="mobius") {
           updateLabels();
           return;
@@ -11843,14 +11863,14 @@ function drawFlat(W,H){
       experimental: false, note: "Sin identificaciones."
     },
     cylinderH: {
-      id: "cylinderH", name: "Cilindro horizontal", group: "official",
+      id: "cylinderH", name: "Cilindro I-D", group: "official",
       wrapH: true, wrapV: false, flipH: false, flipV: false,
       experimental: false, note: "Identifica izquierda ↔ derecha."
     },
     cylinderV: {
-      id: "cylinderV", name: "Cilindro vertical", group: "official",
+      id: "cylinderV", name: "Cilindro S-I", group: "official",
       wrapH: false, wrapV: true, flipH: false, flipV: false,
-      experimental: false, note: "Identifica arriba ↔ abajo."
+      experimental: false, note: "Identifica superior ↔ inferior."
     },
     torus: {
       id: "torus", name: "Toro", group: "official",
@@ -11867,7 +11887,7 @@ function drawFlat(W,H){
       id: "klein", name: "Botella de Klein", group: "experimental",
       wrapH: true, wrapV: true, flipH: true, flipV: false,
       experimental: true, enabled: false,
-      note: "Izquierda ↔ derecha con inversión vertical; arriba ↔ abajo normal."
+      note: "Izquierda ↔ derecha con inversión vertical; superior ↔ inferior normal."
     }
   };
 
@@ -11992,8 +12012,8 @@ function drawFlat(W,H){
 
     const label = {
       plane:"Plano",
-      cylH:"Cilindro horizontal",
-      cylV:"Cilindro vertical",
+      cylH:"Cilindro I-D",
+      cylV:"Cilindro S-I",
       torus:"Toro",
       mobius:"Cinta de Möbius",
       klein:"Botella de Klein"
@@ -12047,8 +12067,8 @@ function drawFlat(W,H){
 
     const names={
       plane:"Plano",
-      cylH:"Cilindro horizontal",
-      cylV:"Cilindro vertical",
+      cylH:"Cilindro I-D",
+      cylV:"Cilindro S-I",
       torus:"Toro",
       mobius:"Cinta de Möbius",
       klein:"Botella de Klein"
@@ -12225,8 +12245,8 @@ function drawFlat(W,H){
 (function(){
   const names = {
     plane: "plano",
-    cylH: "cilindro horizontal",
-    cylV: "cilindro vertical",
+    cylH: "cilindro I-D",
+    cylV: "cilindro S-I",
     torus: "toro",
     mobius: "cinta de Möbius",
     klein: "botella de Klein"
@@ -12566,8 +12586,8 @@ function normalizeNameV171(name){
 function surfaceLabelV171(surface){
   const map={
     plane:"Plano",
-    cylH:"Cilindro horizontal",
-    cylV:"Cilindro vertical",
+    cylH:"Cilindro I-D",
+    cylV:"Cilindro S-I",
     torus:"Toro",
     mobius:"Cinta de Möbius",
     klein:"Botella de Klein"
@@ -18583,8 +18603,8 @@ body.v236-solo-config .v236-cpu-level-section{
 <script id="v245-authoritative-mode-router-js">
 (function(){
   'use strict';
-  const VERSION='v247';
-  const BUILD='topolinea-v247_adaptive_viewer_board';
+  const VERSION='v257';
+  const BUILD='topolinea-v257_width_locked_board_and_play_title';
   const screens=['mainMenuScreen','playModeScreen','surfaceViewerIntroScreen','startScreen','gameScreen'];
   const $=id=>document.getElementById(id);
   let desiredMode = window.__topolineaDesiredModeV243 || (($('matchType')?.value==='solo')?'solo':(($('matchType')?.value==='remote')?'remote':'local'));
@@ -18886,11 +18906,11 @@ body.v243-mode-solo #configModeLabelV179::after{content:'Modo Solitario' !import
 }
 </style>
 
-<script id="v247-adaptive-viewer-board-js">
+<script id="v248-adaptive-viewer-board-js">
 (function(){
   'use strict';
-  const VERSION='v247';
-  const BUILD='topolinea-v247_adaptive_viewer_board';
+  const VERSION='v257';
+  const BUILD='topolinea-v257_width_locked_board_and_play_title';
   const $=id=>document.getElementById(id);
 
   function setBadge(){
@@ -18956,6 +18976,126 @@ body.v243-mode-solo #configModeLabelV179::after{content:'Modo Solitario' !import
 
   if(document.readyState==='loading') document.addEventListener('DOMContentLoaded',init); else init();
   setInterval(()=>{setBadge(); adaptViewerBoard();},1200);
+})();
+</script>
+
+
+
+<style id="v256-adaptive-game-board-style">
+/* ===== v256: cálculo adaptativo integrado en render, sin reajuste posterior ===== */
+#gameScreen .board-area{
+  overflow:hidden !important;
+  width:100% !important;
+  max-width:100% !important;
+  padding:10px !important;
+  box-sizing:border-box !important;
+}
+#gameScreen #boardStack{
+  max-width:100% !important;
+  max-height:100% !important;
+  transform:none !important;
+  transform-origin:center center !important;
+}
+#gameScreen .board-row{
+  max-width:100% !important;
+}
+#gameScreen .coords{
+  font-size:clamp(10px, calc(var(--cell) * .34), 18px) !important;
+}
+#gameScreen .id-left,
+#gameScreen .id-right{
+  width:calc(var(--id) * .50) !important;
+  min-width:10px !important;
+}
+#gameScreen .id-top,
+#gameScreen .id-bottom{
+  height:calc(var(--id) * .42) !important;
+  min-height:9px !important;
+}
+#gameScreen .id-strip span{
+  width:calc(var(--id) * .82) !important;
+  height:calc(var(--id) * .82) !important;
+  min-width:18px !important;
+  min-height:18px !important;
+  font-size:calc(var(--id) * .48) !important;
+}
+@media(max-width:520px){
+  #gameScreen .board-area{padding:8px !important;}
+}
+</style>
+
+<script id="v256-adaptive-game-board-js">
+(function(){
+  'use strict';
+  const VERSION='v257';
+  const BUILD='topolinea-v257_width_locked_board_and_play_title';
+  const $=id=>document.getElementById(id);
+  function setVersionBadge(){
+    window.TOPOLINEA_APP_VERSION=VERSION;
+    window.TOPOLINEA_APP_BUILD=BUILD;
+    const build=$('buildVersionMarkerV194');
+    if(build) build.textContent=BUILD;
+    let b=$('topolineaVersionBadge');
+    if(!b){
+      b=document.createElement('div');
+      b.id='topolineaVersionBadge';
+      document.body.appendChild(b);
+    }
+    b.textContent=VERSION;
+    b.style.cssText='position:fixed;right:8px;bottom:8px;z-index:2147483647;background:rgba(15,23,42,.72);color:#facc15;border:1px solid rgba(250,204,21,.70);border-radius:999px;padding:4px 8px;font:800 11px system-ui;opacity:.9;pointer-events:none;display:block;visibility:visible;';
+  }
+  function forceStableBoardAfterResize(){
+    if(typeof window.render==='function' && window.state && document.getElementById('gameScreen')?.classList.contains('active')){
+      try{ window.render(); }catch(e){}
+    }
+  }
+  function init(){
+    setVersionBadge();
+    ['resize','orientationchange'].forEach(ev=>window.addEventListener(ev,()=>{
+      clearTimeout(window.__topolineaV254ResizeTimer);
+      window.__topolineaV254ResizeTimer=setTimeout(forceStableBoardAfterResize,120);
+    },{passive:true}));
+    setTimeout(setVersionBadge,80);
+    setTimeout(setVersionBadge,400);
+  }
+  if(document.readyState==='loading') document.addEventListener('DOMContentLoaded',init); else init();
+})();
+</script>
+
+
+<style id="v257-play-title-and-board-stability-style">
+/* ===== v257: título de pantalla Jugar estable + tablero sin crecimiento por altura móvil ===== */
+#playModeScreen .v177-title{
+  font-family: system-ui, -apple-system, BlinkMacSystemFont, "Segoe UI", sans-serif !important;
+  font-weight:800 !important;
+  letter-spacing:.01em !important;
+  transition:none !important;
+  animation:none !important;
+}
+#gameScreen #boardStack,
+#gameScreen .board,
+#gameScreen .cell{
+  transition:none !important;
+}
+</style>
+
+<script id="v257-final-version-badge">
+(function(){
+  'use strict';
+  const VERSION='v257';
+  const BUILD='topolinea-v257_width_locked_board_and_play_title';
+  function badge(){
+    window.TOPOLINEA_APP_VERSION=VERSION;
+    window.TOPOLINEA_APP_BUILD=BUILD;
+    const build=document.getElementById('buildVersionMarkerV194');
+    if(build) build.textContent=BUILD;
+    let b=document.getElementById('topolineaVersionBadge');
+    if(!b){ b=document.createElement('div'); b.id='topolineaVersionBadge'; document.body.appendChild(b); }
+    b.textContent=VERSION;
+    b.style.cssText='position:fixed;right:8px;bottom:8px;z-index:2147483647;background:rgba(15,23,42,.72);color:#facc15;border:1px solid rgba(250,204,21,.70);border-radius:999px;padding:4px 8px;font:800 11px system-ui;opacity:.9;pointer-events:none;display:block;visibility:visible;';
+  }
+  if(document.readyState==='loading') document.addEventListener('DOMContentLoaded',badge); else badge();
+  setTimeout(badge,100); setTimeout(badge,500); setInterval(badge,1500);
 })();
 </script>
 
