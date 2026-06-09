@@ -7434,7 +7434,7 @@ body.v183-local-entry #remoteComingCard{
 
 </head>
 <body>
-  <div id="buildVersionMarkerV194" style="display:none">topolinea-v241_version_cleanup_from_v237</div>
+  <div id="buildVersionMarkerV194" style="display:none">topolinea-v242_ui_start_preview_remote_fix</div>
   <section id="mainMenuScreen" class="screen active">
     <div class="v177-shell">
       <div class="v177-card">
@@ -14496,7 +14496,7 @@ if(lastRoom){
       remoteCard.setAttribute('aria-hidden','true');
     }
     const label=$('configModeLabelV179');
-    if(label) label.textContent='Modo local';
+    if(label) label.textContent='Modo Local';
   }
 
   function leaveRemoteLinkForLocal(){
@@ -14634,7 +14634,7 @@ if(lastRoom){
     $('localConfigWrap')?.classList.remove('remote-hidden','remote-guest-hidden-v145','remote-guest-hidden-v155');
     document.querySelectorAll('.v83-options-group,.v83-preview-group,.actions').forEach(el=>{el.style.display='';el.classList.remove('remote-hidden','remote-guest-hidden-v145','remote-guest-hidden-v155');});
     const label=$('configModeLabelV179');
-    if(label) label.textContent='Modo local';
+    if(label) label.textContent='Modo Local';
   }
 
   function leaveRemoteSessionLocalOnly(){
@@ -14837,7 +14837,7 @@ if(lastRoom){
     const link=$('remoteRoomLinkV132'); if(link) link.value='';
     const status=$('remoteStatusV132');
     if(status){ status.textContent='Listo para crear o unirte a una sala.'; status.removeAttribute('data-kind'); }
-    const label=$('configModeLabelV179'); if(label) label.textContent='Modo local';
+    const label=$('configModeLabelV179'); if(label) label.textContent='Modo Local';
   }
 
   function leaveRemoteAndGoHome(){
@@ -15043,7 +15043,7 @@ import { ref, update, serverTimestamp } from "https://www.gstatic.com/firebasejs
       el.style.display=''; el.hidden=false;
       el.classList.remove('remote-hidden','remote-guest-hidden-v145','remote-guest-hidden-v155','v193-hidden','collapsed');
     });
-    const label=$('configModeLabelV179'); if(label) label.textContent='Modo local';
+    const label=$('configModeLabelV179'); if(label) label.textContent='Modo Local';
   }
 
   function fullLocalReset(){
@@ -15279,7 +15279,7 @@ import { ref, update, serverTimestamp } from "https://www.gstatic.com/firebasejs
     });
     const card=$('remoteComingCard');
     if(card){ card.classList.remove('active'); card.style.display='none'; card.setAttribute('aria-hidden','true'); }
-    const label=$('configModeLabelV179'); if(label) label.textContent='Modo local';
+    const label=$('configModeLabelV179'); if(label) label.textContent='Modo Local';
   }
 
   function clearRemoteUi(){
@@ -17741,7 +17741,7 @@ body.v231-solo-config #playFlowCard{
     clearRemoteVisuals();
 
     const label=$('configModeLabelV179');
-    if(label) label.textContent='Modo solitario · vs CPU';
+    if(label) label.textContent='Modo Solitario';
 
     const start=$('startBtn');
     if(start) start.textContent='Iniciar solitario';
@@ -17871,7 +17871,7 @@ body.v232-solo-config #v83OptionsContent{
     document.body.classList.remove('v188-remote-prehost');
 
     const label=$('configModeLabelV179');
-    if(label) label.textContent='Modo solitario · vs CPU';
+    if(label) label.textContent='Modo Solitario';
 
     const start=$('startBtn');
     if(start) start.textContent='Iniciar solitario';
@@ -18267,10 +18267,200 @@ body.v236-solo-config .v236-cpu-level-section{
   setInterval(tick,250);
 })();
 </script>
-<!-- v241: fuente única de versión.
+
+
+<!-- v242: correcciones UI sin tocar motor de juego.
+     1) Vista previa se redibuja al entrar a configuración.
+     2) Botones Inicio uniformes.
+     3) Remoto oculta configuración local desde el primer frame. -->
+<style id="v242-ui-start-preview-remote-style">
+  :root{ --v242-home-yellow:#facc15; --v242-home-yellow-2:#fde68a; }
+
+  /* Botones Inicio: mismo color, tamaño base y ubicación superior izquierda. */
+  #playBackBtnV177,
+  #surfacesBackBtnV177,
+  #configHomeBtnV179{
+    min-width:96px !important;
+    min-height:52px !important;
+    padding:0 18px !important;
+    border-radius:16px !important;
+    background:linear-gradient(90deg,var(--v242-home-yellow-2),var(--v242-home-yellow)) !important;
+    color:#422006 !important;
+    border:1px solid rgba(250,204,21,.52) !important;
+    box-shadow:0 10px 24px rgba(250,204,21,.14) !important;
+    font-weight:1000 !important;
+    font-size:1rem !important;
+    line-height:1 !important;
+  }
+
+  #playModeScreen .v177-card,
+  #surfaceViewerIntroScreen .v206-surface-card{
+    position:relative !important;
+  }
+
+  #playModeScreen .v177-card{
+    padding-top:86px !important;
+  }
+
+  #playBackBtnV177{
+    position:absolute !important;
+    top:18px !important;
+    left:18px !important;
+    z-index:10 !important;
+  }
+
+  #playModeScreen .v177-secondary-row{
+    margin:0 !important;
+    min-height:0 !important;
+  }
+
+  #surfaceViewerIntroScreen .v206-surface-head{
+    padding-top:68px !important;
+  }
+
+  #surfacesBackBtnV177{
+    position:absolute !important;
+    top:18px !important;
+    left:18px !important;
+    z-index:10 !important;
+  }
+
+  #configNavV179{
+    display:flex !important;
+    align-items:center !important;
+    justify-content:flex-start !important;
+    gap:16px !important;
+  }
+
+  #configHomeBtnV179{
+    flex:0 0 auto !important;
+  }
+
+  /* Si el usuario entra a remoto, no debe verse por un instante la config local. */
+  body.v242-remote-entry-now #localConfigWrap,
+  body.v242-remote-entry-now .v83-options-group,
+  body.v242-remote-entry-now .v83-preview-group,
+  body.v242-remote-entry-now .actions{
+    display:none !important;
+  }
+  body.v242-remote-entry-now #remoteComingCard{
+    display:block !important;
+  }
+
+  @media(max-width:760px){
+    #playBackBtnV177,
+    #surfacesBackBtnV177,
+    #configHomeBtnV179{
+      min-width:88px !important;
+      min-height:48px !important;
+      border-radius:15px !important;
+      font-size:.96rem !important;
+    }
+    #playModeScreen .v177-card{ padding-top:78px !important; }
+    #surfaceViewerIntroScreen .v206-surface-head{ padding-top:62px !important; }
+  }
+</style>
+<script id="v242-ui-start-preview-remote-js">
+(function(){
+  'use strict';
+  const $ = id => document.getElementById(id);
+
+  function isStartScreenActive(){
+    const s = $('startScreen');
+    return !!(s && s.classList.contains('active'));
+  }
+
+  function redrawPreviewSoon(){
+    // El canvas de vista previa a veces se dibuja cuando aún no tiene tamaño visible.
+    // El redibujo por resize ya está escuchado por el código original.
+    [0, 40, 120, 260, 600].forEach(function(ms){
+      setTimeout(function(){
+        try{ window.dispatchEvent(new Event('resize')); }catch(e){}
+        try{ $('rows')?.dispatchEvent(new Event('input', {bubbles:true})); }catch(e){}
+      }, ms);
+    });
+  }
+
+  function fixRemoteEntryImmediate(){
+    const match = $('matchType');
+    if(match) match.value = 'remote';
+    window.__topolineaMatchType = 'remote';
+    document.body.classList.add('v242-remote-entry-now');
+
+    const label = $('configModeLabelV179');
+    if(label) label.textContent = 'Modo remoto';
+
+    const remote = $('remoteComingCard');
+    if(remote){
+      remote.classList.add('active');
+      remote.style.display = 'block';
+      remote.removeAttribute('aria-hidden');
+    }
+
+    ['localConfigWrap'].forEach(function(id){
+      const el=$(id); if(el) el.style.display='none';
+    });
+
+    redrawPreviewSoon();
+  }
+
+  function clearImmediateRemoteFlagIfNeeded(){
+    const match = $('matchType')?.value;
+    const solo = document.body.classList.contains('v230-solo-flow') || document.body.classList.contains('v231-solo-flow');
+    if(match !== 'remote' || solo){
+      document.body.classList.remove('v242-remote-entry-now');
+    }
+  }
+
+  function bind(){
+    const remoteBtn = $('playRemoteBtnV177');
+    if(remoteBtn && !remoteBtn.dataset.v242RemoteImmediate){
+      remoteBtn.dataset.v242RemoteImmediate = '1';
+      remoteBtn.addEventListener('click', fixRemoteEntryImmediate, true);
+      remoteBtn.addEventListener('touchstart', fixRemoteEntryImmediate, {capture:true, passive:true});
+    }
+
+    ['playLocalBtnV177','playSoloBtnV230','configHomeBtnV179','playBackBtnV177','surfacesBackBtnV177'].forEach(function(id){
+      const b=$(id);
+      if(b && !b.dataset.v242ClearRemoteFlag){
+        b.dataset.v242ClearRemoteFlag='1';
+        b.addEventListener('click', function(){ setTimeout(clearImmediateRemoteFlagIfNeeded,0); }, true);
+      }
+    });
+
+    document.querySelectorAll('.surface-choice,[data-surface],[data-select],[data-check]').forEach(function(el){
+      if(!el.dataset.v242PreviewRedraw){
+        el.dataset.v242PreviewRedraw='1';
+        el.addEventListener('click', redrawPreviewSoon, true);
+      }
+    });
+  }
+
+  function watchStartScreen(){
+    const s = $('startScreen');
+    if(!s || s.dataset.v242ScreenWatch) return;
+    s.dataset.v242ScreenWatch = '1';
+    const mo = new MutationObserver(function(){
+      if(isStartScreenActive()) redrawPreviewSoon();
+    });
+    mo.observe(s, {attributes:true, attributeFilter:['class']});
+  }
+
+  function init(){
+    bind();
+    watchStartScreen();
+    if(isStartScreenActive()) redrawPreviewSoon();
+  }
+
+  if(document.readyState === 'loading') document.addEventListener('DOMContentLoaded', init);
+  else init();
+  [80, 250, 700, 1500].forEach(ms=>setTimeout(init, ms));
+})();
+</script>
+<!-- v242: fuente única de versión.
      Para futuras versiones, cambiar SOLO TOPOLINEA_APP_VERSION y TOPOLINEA_APP_BUILD en este bloque final.
      El badge final NO usa id versionMarkerV..., para que scripts antiguos no lo borren ni lo alternen. -->
-<style id="v241-single-version-source-style">
+<style id="v242-single-version-source-style">
 [id^="versionMarkerV"],
 #v190DiagPanel,
 #v188VisibleMarker{
@@ -18300,11 +18490,11 @@ body.v236-solo-config .v236-cpu-level-section{
   display:none!important;
 }
 </style>
-<script id="v241-single-version-source-js">
+<script id="v242-single-version-source-js">
 (function(){
   'use strict';
-  window.TOPOLINEA_APP_VERSION = 'v241';
-  window.TOPOLINEA_APP_BUILD = 'topolinea-v241_version_cleanup_from_v237';
+  window.TOPOLINEA_APP_VERSION = 'v242';
+  window.TOPOLINEA_APP_BUILD = 'topolinea-v242_ui_start_preview_remote_fix';
   const BADGE_ID = 'topolineaVersionBadge';
 
   function ensureVersionBadge(){
@@ -18334,5 +18524,440 @@ body.v236-solo-config .v236-cpu-level-section{
   });
 })();
 </script>
+
+
+<!-- v243: enrutamiento autoritativo de modos.
+     Corrige arrastre de Local/Remoto/Solitario causado por timeouts/listeners heredados. -->
+<style id="v245-authoritative-mode-router-style">
+  /* Regla visual simple: el modo autoritativo decide qué se muestra en configuración. */
+  body.v243-mode-remote #localConfigWrap,
+  body.v243-mode-remote .v83-options-group,
+  body.v243-mode-remote .v83-preview-group,
+  body.v243-mode-remote .actions{
+    display:none !important;
+  }
+  body.v243-mode-remote #remoteComingCard{
+    display:block !important;
+  }
+  body.v243-mode-local #remoteComingCard,
+  body.v243-mode-solo #remoteComingCard{
+    display:none !important;
+  }
+  body.v243-mode-local #localConfigWrap,
+  body.v243-mode-local .v83-options-group,
+  body.v243-mode-local .v83-preview-group,
+  body.v243-mode-local .actions,
+  body.v243-mode-solo #localConfigWrap,
+  body.v243-mode-solo .v83-options-group,
+  body.v243-mode-solo .v83-preview-group,
+  body.v243-mode-solo .actions{
+    display:block;
+  }
+  body.v243-mode-local #surfaceConfigSection,
+  body.v243-mode-solo #surfaceConfigSection{
+    display:block !important;
+  }
+  #topolineaVersionBadge{
+    background:rgba(15,23,42,.72) !important;
+    color:#facc15 !important;
+    border:1px solid rgba(250,204,21,.70) !important;
+  }
+
+  /* v245: el subtítulo se renderiza por CSS según el modo autoritativo.
+     Esto evita la pelea con scripts heredados que reescriben "Modo remoto · Sala". */
+  #configModeLabelV179{
+    font-size:0 !important;
+    color:transparent !important;
+    line-height:1.2 !important;
+  }
+  #configModeLabelV179::after{
+    font-size:clamp(1.05rem,3.2vw,1.45rem) !important;
+    color:#cbd5e1 !important;
+    font-weight:750 !important;
+    white-space:normal !important;
+  }
+  body.v243-mode-local #configModeLabelV179::after{content:'Modo Local';}
+  body.v243-mode-remote #configModeLabelV179::after{content:'Modo Remoto';}
+  body.v243-mode-solo #configModeLabelV179::after{content:'Modo Solitario';}
+</style>
+<script id="v245-authoritative-mode-router-js">
+(function(){
+  'use strict';
+  const VERSION='v247';
+  const BUILD='topolinea-v247_adaptive_viewer_board';
+  const screens=['mainMenuScreen','playModeScreen','surfaceViewerIntroScreen','startScreen','gameScreen'];
+  const $=id=>document.getElementById(id);
+  let desiredMode = window.__topolineaDesiredModeV243 || (($('matchType')?.value==='solo')?'solo':(($('matchType')?.value==='remote')?'remote':'local'));
+  let reconcileUntil = 0;
+
+  function setBadge(){
+    window.TOPOLINEA_APP_VERSION=VERSION;
+    window.TOPOLINEA_APP_BUILD=BUILD;
+    const build=$('buildVersionMarkerV194'); if(build) build.textContent=BUILD;
+    document.querySelectorAll('[id^="versionMarkerV"],#v190DiagPanel,#v188VisibleMarker').forEach(el=>{
+      if(el.id!=='topolineaVersionBadge'){
+        el.style.display='none'; el.style.visibility='hidden'; el.style.opacity='0';
+      }
+    });
+    let b=$('topolineaVersionBadge');
+    if(!b){
+      b=document.createElement('div');
+      b.id='topolineaVersionBadge';
+      document.body.appendChild(b);
+    }
+    b.textContent=VERSION;
+    b.style.cssText='position:fixed;right:8px;bottom:8px;z-index:2147483647;background:rgba(15,23,42,.72);color:#facc15;border:1px solid rgba(250,204,21,.70);border-radius:999px;padding:4px 8px;font:800 11px system-ui;opacity:.9;pointer-events:none;display:block;visibility:visible;';
+  }
+
+  function showScreen(id){
+    try{
+      if(window.TopolineaNavigationV177?.showScreen) window.TopolineaNavigationV177.showScreen(id);
+      else screens.forEach(name=>$(name)?.classList.toggle('active', name===id));
+      window.scrollTo({top:0,left:0,behavior:'auto'});
+    }catch(e){ screens.forEach(name=>$(name)?.classList.toggle('active', name===id)); }
+  }
+
+  function cleanModeClasses(){
+    document.body.classList.remove(
+      'v230-solo-flow','v231-solo-config','v232-solo-config','v236-solo-config',
+      'v188-remote-prehost','v182-remote-entry','v183-remote-entry','v242-remote-entry-now',
+      'v182-local-entry','v183-local-entry','v243-mode-local','v243-mode-remote','v243-mode-solo'
+    );
+  }
+
+  function setVisible(el, visible){
+    if(!el) return;
+    el.hidden=false;
+    el.style.display = visible ? '' : 'none';
+    el.setAttribute('aria-hidden', visible ? 'false' : 'true');
+    if(visible){
+      el.classList.remove('remote-hidden','remote-guest-hidden-v145','remote-guest-hidden-v155','v193-hidden');
+    }
+  }
+
+  function redrawPreviewSoon(){
+    [0,50,150,350,800].forEach(ms=>setTimeout(()=>{
+      try{ window.dispatchEvent(new Event('resize')); }catch(e){}
+      try{ $('rows')?.dispatchEvent(new Event('input',{bubbles:true})); }catch(e){}
+      try{ $('surface')?.dispatchEvent(new Event('change',{bubbles:true})); }catch(e){}
+    },ms));
+  }
+
+  function applyMode(mode){
+    desiredMode = (mode==='remote'||mode==='solo') ? mode : 'local';
+    window.__topolineaDesiredModeV243 = desiredMode;
+    const match=$('matchType'); if(match) match.value=desiredMode;
+    window.__topolineaMatchType=desiredMode;
+
+    cleanModeClasses();
+    document.body.classList.add('v243-mode-'+desiredMode);
+
+    const label=$('configModeLabelV179');
+    const start=$('startBtn');
+    const note=$('v231SoloConfigNote');
+    const remote=$('remoteComingCard');
+
+    if(desiredMode==='remote'){
+      document.body.classList.add('v188-remote-prehost');
+      if(label) label.textContent='Modo Remoto';
+      setVisible(remote,true); remote?.classList.add('active');
+      ['localConfigWrap','surfaceConfigSection'].forEach(id=>setVisible($(id),false));
+      document.querySelectorAll('.v83-options-group,.v83-preview-group,.actions').forEach(el=>setVisible(el,false));
+      if(start) start.textContent='Iniciar partida';
+      if(note) note.hidden=true;
+      try{ window.setTopolineaFlowV132?.('remote'); }catch(e){}
+    }else{
+      document.body.classList.add('v188-local-flow');
+      setVisible(remote,false); remote?.classList.remove('active');
+      ['localConfigWrap','surfaceConfigSection'].forEach(id=>setVisible($(id),true));
+      document.querySelectorAll('.v83-options-group,.v83-preview-group,.actions,.config-preview-card').forEach(el=>setVisible(el,true));
+      try{ window.setTopolineaFlowV132?.('local'); }catch(e){}
+      if(desiredMode==='solo'){
+        document.body.classList.add('v230-solo-flow','v231-solo-config','v232-solo-config','v236-solo-config');
+        if(label) label.textContent='Modo Solitario';
+        if(start) start.textContent='Iniciar solitario';
+        if(note) note.hidden=false;
+        if(window.TopolineaSoloV230) window.TopolineaSoloV230.enabled=true;
+        const players=$('playersMode'); if(players) players.value='1v1';
+        document.querySelectorAll('[data-select="playersMode"]').forEach(btn=>btn.classList.toggle('active',btn.dataset.value==='1v1'));
+        const opt=$('v83OptionsContent'), tog=$('v83OptionsToggle');
+        if(opt) opt.classList.add('collapsed');
+        if(tog){ tog.classList.remove('expanded'); tog.setAttribute('aria-expanded','false'); }
+      }else{
+        if(label) label.textContent='Modo Local';
+        if(start) start.textContent='Iniciar partida';
+        if(note) note.hidden=true;
+        if(window.TopolineaSoloV230) window.TopolineaSoloV230.enabled=false;
+      }
+    }
+    setBadge();
+    redrawPreviewSoon();
+  }
+
+  function enterMode(mode){
+    desiredMode=mode;
+    reconcileUntil=Date.now()+2600; // derrota timeouts heredados de v231/v232/v242
+    applyMode(mode);
+    showScreen('startScreen');
+    [0,80,220,520,1050,1600,2300].forEach(ms=>setTimeout(()=>applyMode(desiredMode),ms));
+  }
+
+  function bindModeButton(id, mode){
+    const el=$(id); if(!el || el.dataset.v243ModeBound) return;
+    el.dataset.v243ModeBound='1';
+    // pointerdown/touchstart fija el modo antes de los listeners antiguos de click.
+    ['pointerdown','touchstart','mousedown'].forEach(type=>{
+      el.addEventListener(type,()=>{ desiredMode=mode; window.__topolineaDesiredModeV243=mode; reconcileUntil=Date.now()+2600; applyMode(mode); }, {capture:true, passive:true});
+    });
+    el.addEventListener('click',function(ev){
+      ev.preventDefault(); ev.stopPropagation(); ev.stopImmediatePropagation();
+      enterMode(mode); return false;
+    }, true);
+  }
+
+  function bind(){
+    bindModeButton('playLocalBtnV177','local');
+    bindModeButton('playRemoteBtnV177','remote');
+    bindModeButton('playSoloBtnV230','solo');
+    const homeIds=['configHomeBtnV179','surfacesBackBtnV177','playBackBtnV177'];
+    homeIds.forEach(id=>{
+      const el=$(id); if(!el || el.dataset.v243HomeBound) return;
+      el.dataset.v243HomeBound='1';
+      el.addEventListener('click',()=>{ desiredMode='local'; window.__topolineaDesiredModeV243='local'; }, true);
+    });
+    const start=$('startBtn');
+    if(start && !start.dataset.v243StartGuard){
+      start.dataset.v243StartGuard='1';
+      start.addEventListener('click',()=>{ applyMode(desiredMode); }, true);
+    }
+  }
+
+  function init(){
+    bind(); setBadge();
+    if($('startScreen')?.classList.contains('active')) applyMode(desiredMode);
+  }
+
+  if(document.readyState==='loading') document.addEventListener('DOMContentLoaded',init); else init();
+  [80,250,700,1500].forEach(ms=>setTimeout(init,ms));
+  setInterval(()=>{
+    setBadge();
+    if(Date.now()<reconcileUntil || $('startScreen')?.classList.contains('active')) applyMode(desiredMode);
+  },180);
+})();
+</script>
+
+
+
+<style id="v246-config-title-viewer-width-fix">
+/* ===== v246: subtítulos uniformes + visualizador sin desborde horizontal ===== */
+html, body{
+  max-width:100%;
+  overflow-x:hidden !important;
+}
+
+/* La configuración queda con subtítulos breves y de longitud comparable. */
+#configModeLabelV179::after{
+  font-size:clamp(1.05rem,3.1vw,1.42rem) !important;
+  font-weight:800 !important;
+  letter-spacing:.01em !important;
+}
+body.v243-mode-local #configModeLabelV179::after{content:'Modo Local' !important;}
+body.v243-mode-remote #configModeLabelV179::after{content:'Modo Remoto' !important;}
+body.v243-mode-solo #configModeLabelV179::after{content:'Modo Solitario' !important;}
+
+/* Evitar que la cabecera de configuración genere saltos o anchuras extrañas. */
+#startScreen.game-config-only{
+  overflow-x:hidden !important;
+}
+#startScreen.game-config-only .config-head{
+  min-width:0 !important;
+}
+#startScreen.game-config-only .config-head h2,
+#startScreen.game-config-only .config-head p{
+  max-width:100% !important;
+  overflow-wrap:anywhere !important;
+}
+
+/* Visualizador: ancho estrictamente adaptado al dispositivo. */
+#surfaceViewerIntroScreen{
+  padding-left:clamp(10px,3vw,22px) !important;
+  padding-right:clamp(10px,3vw,22px) !important;
+  overflow-x:hidden !important;
+}
+#surfaceViewerIntroScreen .v206-surface-shell,
+#surfaceViewerIntroScreen .v177-shell{
+  width:100% !important;
+  max-width:100% !important;
+  min-width:0 !important;
+  overflow-x:hidden !important;
+  justify-items:center !important;
+}
+#surfaceViewerIntroScreen .v206-surface-card,
+#surfaceViewerIntroScreen .v177-card{
+  width:100% !important;
+  max-width:min(920px, calc(100vw - 20px)) !important;
+  min-width:0 !important;
+  overflow:hidden !important;
+  box-sizing:border-box !important;
+}
+#surfaceViewerIntroScreen .v206-surface-head,
+#surfaceViewerIntroScreen .v206-compact-settings,
+#surfaceViewerIntroScreen .v206-editor-card,
+#surfaceViewerIntroScreen .v206-panel,
+#surfaceViewerIntroScreen .v212-photo-card,
+#surfaceViewerIntroScreen .v215-scan-card{
+  min-width:0 !important;
+  max-width:100% !important;
+  box-sizing:border-box !important;
+}
+#surfaceViewerIntroScreen .v206-surface-head .v177-title,
+#surfaceViewerIntroScreen .v206-surface-head .v177-lead{
+  overflow-wrap:anywhere !important;
+}
+#surfaceViewerIntroScreen .v206-compact-settings{
+  grid-template-columns:minmax(0,1fr) minmax(76px,104px) !important;
+}
+#surfaceViewerIntroScreen .v206-entry-toggle,
+#surfaceViewerIntroScreen .v206-entry-toggle button,
+#surfaceViewerIntroScreen .v206-compact-settings label,
+#surfaceViewerIntroScreen .v206-compact-settings input{
+  min-width:0 !important;
+}
+#surfaceViewerIntroScreen .v206-board-wrap{
+  width:100% !important;
+  max-width:100% !important;
+  overflow:auto !important;
+  -webkit-overflow-scrolling:touch;
+}
+
+@media(max-width:520px){
+  #surfaceViewerIntroScreen .v206-surface-card{
+    padding-left:14px !important;
+    padding-right:14px !important;
+    border-radius:24px !important;
+  }
+  #surfaceViewerIntroScreen .v206-surface-head{
+    gap:10px !important;
+  }
+  #surfaceViewerIntroScreen .v206-surface-head .v177-title{
+    font-size:clamp(1.45rem,8vw,2.15rem) !important;
+    letter-spacing:.02em !important;
+  }
+  #surfaceViewerIntroScreen .v206-compact-settings{
+    grid-template-columns:minmax(0,1fr) minmax(70px,92px) !important;
+  }
+}
+</style>
+
+
+<style id="v247-adaptive-viewer-board-style">
+/* ===== v247: tablero del visualizador adaptativo al ancho disponible ===== */
+#surfaceViewerIntroScreen .v206-board-wrap{
+  overflow:hidden !important;
+  padding:clamp(6px,2vw,10px) !important;
+  justify-content:center !important;
+}
+#surfaceViewerIntroScreen .v206-board{
+  --v206-coord:clamp(20px,6vw,32px);
+  grid-template-columns:var(--v206-coord) repeat(var(--v206-n), var(--v206-cell)) !important;
+  grid-auto-rows:var(--v206-cell) !important;
+  max-width:100% !important;
+}
+#surfaceViewerIntroScreen .v206-coord{
+  font-size:clamp(.72rem, calc(var(--v206-cell) * .42), 1rem) !important;
+  line-height:1 !important;
+}
+#surfaceViewerIntroScreen .v206-cell{
+  width:var(--v206-cell) !important;
+  height:var(--v206-cell) !important;
+}
+#surfaceViewerIntroScreen .v206-piece{
+  width:72% !important;
+  height:72% !important;
+  border-width:clamp(1px, calc(var(--v206-cell) * .055), 2px) !important;
+}
+#surfaceViewerIntroScreen .v206-cell.blocked{
+  font-size:calc(var(--v206-cell) * .52) !important;
+}
+@media(max-width:520px){
+  #surfaceViewerIntroScreen .v206-board{
+    --v206-coord:22px;
+  }
+}
+</style>
+
+<script id="v247-adaptive-viewer-board-js">
+(function(){
+  'use strict';
+  const VERSION='v247';
+  const BUILD='topolinea-v247_adaptive_viewer_board';
+  const $=id=>document.getElementById(id);
+
+  function setBadge(){
+    window.TOPOLINEA_APP_VERSION=VERSION;
+    window.TOPOLINEA_APP_BUILD=BUILD;
+    const build=$('buildVersionMarkerV194');
+    if(build) build.textContent=BUILD;
+    let b=$('topolineaVersionBadge');
+    if(!b){
+      b=document.createElement('div');
+      b.id='topolineaVersionBadge';
+      document.body.appendChild(b);
+    }
+    b.textContent=VERSION;
+    b.style.cssText='position:fixed;right:8px;bottom:8px;z-index:2147483647;background:rgba(15,23,42,.72);color:#facc15;border:1px solid rgba(250,204,21,.70);border-radius:999px;padding:4px 8px;font:800 11px system-ui;opacity:.9;pointer-events:none;display:block;visibility:visible;';
+  }
+
+  function getN(){
+    const input=$('v206SizeInput');
+    const fromInput=parseInt(input && input.value,10);
+    const board=$('v206Board');
+    const fromCss=parseInt(board && getComputedStyle(board).getPropertyValue('--v206-n'),10);
+    return Math.max(5, Math.min(15, Number.isFinite(fromInput)?fromInput:(Number.isFinite(fromCss)?fromCss:10)));
+  }
+
+  function adaptViewerBoard(){
+    const screen=$('surfaceViewerIntroScreen');
+    const wrap=$('v206BoardWrap');
+    const board=$('v206Board');
+    if(!screen || !wrap || !board) return;
+    if(!screen.classList.contains('active')) return;
+
+    const n=getN();
+    const wrapStyle=getComputedStyle(wrap);
+    const padX=(parseFloat(wrapStyle.paddingLeft)||0)+(parseFloat(wrapStyle.paddingRight)||0);
+    const available=Math.max(160, wrap.clientWidth - padX - 2);
+    const coord=window.innerWidth<=520 ? 22 : Math.min(32, Math.max(22, Math.round(available*0.075)));
+    const gap=0;
+    let cell=Math.floor((available - coord - gap) / n);
+    const maxCell=window.innerWidth<=520 ? 34 : 42;
+    const minCell=18;
+    cell=Math.max(minCell, Math.min(maxCell, cell));
+
+    board.style.setProperty('--v206-n', String(n));
+    board.style.setProperty('--v206-coord', coord+'px');
+    board.style.setProperty('--v206-cell', cell+'px');
+    board.style.maxWidth='100%';
+  }
+
+  function init(){
+    setBadge();
+    adaptViewerBoard();
+    ['resize','orientationchange'].forEach(ev=>window.addEventListener(ev,()=>setTimeout(adaptViewerBoard,60),{passive:true}));
+    $('v206SizeInput')?.addEventListener('input',()=>setTimeout(adaptViewerBoard,0));
+    $('v206SizeInput')?.addEventListener('change',()=>setTimeout(adaptViewerBoard,0));
+    $('mainSurfacesBtnV177')?.addEventListener('click',()=>[30,120,320].forEach(ms=>setTimeout(adaptViewerBoard,ms)),true);
+    if(window.ResizeObserver){
+      const ro=new ResizeObserver(()=>adaptViewerBoard());
+      const wrap=$('v206BoardWrap'); if(wrap) ro.observe(wrap);
+    }
+    [80,250,600,1200].forEach(ms=>setTimeout(adaptViewerBoard,ms));
+  }
+
+  if(document.readyState==='loading') document.addEventListener('DOMContentLoaded',init); else init();
+  setInterval(()=>{setBadge(); adaptViewerBoard();},1200);
+})();
+</script>
+
 </body>
 </html>
