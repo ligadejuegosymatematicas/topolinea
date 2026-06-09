@@ -7415,10 +7415,26 @@ body.v183-local-entry #remoteComingCard{
   box-shadow:0 10px 24px rgba(250,204,21,.14) !important;
 }
 </style>
+
+<style id="v241-early-version-cleanup">
+/* v241: evita parpadeos de marcadores antiguos antes de que cargue el JS final */
+[id^="versionMarkerV"],
+#v190DiagPanel,
+#v188VisibleMarker{
+  display:none !important;
+  visibility:hidden !important;
+  opacity:0 !important;
+}
+/* Evita que aparezca el ícono de imagen rota mientras se inicializa el logo */
+#mainMenuLogoV177:not([src]),
+#mainMenuLogoV177[src=""]{
+  display:none !important;
+}
+</style>
+
 </head>
-<body data-v191="1">
-  <div id="versionMarkerV191" style="position:fixed;right:8px;bottom:8px;z-index:99999;background:#111827;color:#facc15;border:1px solid #facc15;border-radius:999px;padding:4px 8px;font:700 11px system-ui;opacity:.75;pointer-events:none">v191</div>
-  <div id="buildVersionMarkerV194" style="display:none">topolinea-v231-solitario-config-fix</div>
+<body>
+  <div id="buildVersionMarkerV194" style="display:none">topolinea-v241_version_cleanup_from_v237</div>
   <section id="mainMenuScreen" class="screen active">
     <div class="v177-shell">
       <div class="v177-card">
@@ -18251,57 +18267,72 @@ body.v236-solo-config .v236-cpu-level-section{
   setInterval(tick,250);
 })();
 </script>
-
-
-<!-- v237: fuente única de versión.
-     Para futuras versiones, cambiar SOLO TOPOLINEA_APP_VERSION y TOPOLINEA_APP_BUILD en este bloque final. -->
-<style id="v237-single-version-source-style">
-[id^="versionMarkerV"]{display:none!important;visibility:hidden!important;opacity:0!important;}
-#versionMarkerV237{
+<!-- v241: fuente única de versión.
+     Para futuras versiones, cambiar SOLO TOPOLINEA_APP_VERSION y TOPOLINEA_APP_BUILD en este bloque final.
+     El badge final NO usa id versionMarkerV..., para que scripts antiguos no lo borren ni lo alternen. -->
+<style id="v241-single-version-source-style">
+[id^="versionMarkerV"],
+#v190DiagPanel,
+#v188VisibleMarker{
+  display:none!important;
+  visibility:hidden!important;
+  opacity:0!important;
+}
+#topolineaVersionBadge{
   display:block!important;
   visibility:visible!important;
-  opacity:.75!important;
+  opacity:.78!important;
   position:fixed!important;
   right:8px!important;
   bottom:8px!important;
   z-index:999999!important;
-  background:#111827!important;
+  background:rgba(17,24,39,.88)!important;
   color:#facc15!important;
-  border:1px solid #facc15!important;
+  border:1px solid rgba(250,204,21,.70)!important;
   border-radius:999px!important;
   padding:4px 8px!important;
   font:700 11px system-ui!important;
   pointer-events:none!important;
+  box-shadow:0 0 10px rgba(0,0,0,.22)!important;
+}
+#mainMenuLogoV177:not([src]),
+#mainMenuLogoV177[src=""]{
+  display:none!important;
 }
 </style>
-<script id="v237-single-version-source-js">
+<script id="v241-single-version-source-js">
 (function(){
   'use strict';
-  window.TOPOLINEA_APP_VERSION = 'v237';
-  window.TOPOLINEA_APP_BUILD = 'topolinea-v237_single_version_source';
-  const MARKER_ID = 'versionMarkerV237';
-  function ensureSingleVersionMarker(){
-    document.querySelectorAll('[id^="versionMarkerV"]').forEach(function(el){
-      if(el.id !== MARKER_ID) el.remove();
-    });
-    let b = document.getElementById(MARKER_ID);
+  window.TOPOLINEA_APP_VERSION = 'v241';
+  window.TOPOLINEA_APP_BUILD = 'topolinea-v241_version_cleanup_from_v237';
+  const BADGE_ID = 'topolineaVersionBadge';
+
+  function ensureVersionBadge(){
+    // No eliminamos nodos antiguos: solo los ocultamos por CSS.
+    // Así evitamos pelear con scripts viejos que podrían recrearlos.
+    let b = document.getElementById(BADGE_ID);
     if(!b){
       b = document.createElement('div');
-      b.id = MARKER_ID;
+      b.id = BADGE_ID;
       document.body.appendChild(b);
     }
     b.textContent = window.TOPOLINEA_APP_VERSION;
+
     const build = document.getElementById('buildVersionMarkerV194');
     if(build) build.textContent = window.TOPOLINEA_APP_BUILD;
   }
-  if(document.readyState === 'loading') document.addEventListener('DOMContentLoaded', ensureSingleVersionMarker);
-  else ensureSingleVersionMarker();
-  setTimeout(ensureSingleVersionMarker, 50);
-  setTimeout(ensureSingleVersionMarker, 300);
-  setTimeout(ensureSingleVersionMarker, 1200);
-  setInterval(ensureSingleVersionMarker, 500);
+
+  if(document.readyState === 'loading'){
+    document.addEventListener('DOMContentLoaded', ensureVersionBadge);
+  }else{
+    ensureVersionBadge();
+  }
+
+  // Refuerzos tardíos: cubren recarga/PWA sin usar observadores globales.
+  [50, 200, 700, 1500, 3000].forEach(function(ms){
+    setTimeout(ensureVersionBadge, ms);
+  });
 })();
 </script>
-
 </body>
 </html>
